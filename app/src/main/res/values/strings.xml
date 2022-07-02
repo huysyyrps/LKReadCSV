@@ -1,0 +1,13 @@
+<resources>
+    <string name="app_name">LK-ReadCVS</string>
+    <string name="select_setting">设置</string>
+    <string name="on_direct_current">通电直流电流</string>
+    <string name="off_direct_current">断电直流电流</string>
+    <string name="on_ac_current">通电交流电流</string>
+    <string name="off_ac_current">断电交流电流</string>
+
+    <string name="on_direct_voltage">通电直流电压</string>
+    <string name="off_direct_voltage">断电直流电压</string>
+    <string name="on_ac_voltage">通电交流电压</string>
+    <string name="off_ac_voltage">断电交流电压</string>
+</resources>
