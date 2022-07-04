@@ -93,11 +93,11 @@
                 android:layout_weight="1"
                 android:orientation="horizontal">
                 <TextView
-                    android:id="@+id/radionTime"
+                    android:id="@+id/tvSaveImg"
                     style="@style/RadionButton"
                     android:layout_width="80dp"
                     android:layout_height="25dp"
-                    android:text="时间"
+                    android:text="保存图片"
                     android:background="@color/color_bg_selected"/>
                 <TextView
                     android:id="@+id/tvOnDirectCurrent"

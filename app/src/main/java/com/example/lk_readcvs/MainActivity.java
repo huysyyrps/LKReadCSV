@@ -1,14 +1,29 @@
 package com.example.lk_readcvs;
 
+import static com.example.lk_readcvs.Util.Constant.TAG_ONE;
+import static com.example.lk_readcvs.Util.Constant.TAG_TWO;
+
 import android.Manifest;
 import android.annotation.SuppressLint;
+import android.app.Activity;
 import android.content.Context;
+import android.content.Intent;
+import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.graphics.Matrix;
+import android.hardware.display.DisplayManager;
+import android.hardware.display.VirtualDisplay;
+import android.media.Image;
+import android.media.ImageReader;
+import android.media.projection.MediaProjection;
+import android.media.projection.MediaProjectionManager;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
 import android.os.Handler;
 import android.os.Message;
+import android.util.DisplayMetrics;
+import android.util.Log;
 import android.view.View;
 import android.view.WindowManager;
 import android.widget.ImageView;
@@ -20,9 +35,13 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.bigkoo.pickerview.TimePickerView;
+import com.example.lk_readcvs.Util.AlertDialogUtil;
+import com.example.lk_readcvs.Util.Constant;
+import com.example.lk_readcvs.Util.ImageSave;
 import com.example.lk_readcvs.Util.ReadCSVCallBack;
 import com.example.lk_readcvs.Util.ReadCSVThread;
 import com.example.lk_readcvs.Util.ReadConstant;
+import com.example.lk_readcvs.Util.SaveImageCallBack;
 import com.example.lk_readcvs.Util.SelectDateTime;
 import com.example.lk_readcvs.View.BottomUI;
 import com.github.mikephil.charting.charts.LineChart;
@@ -31,6 +50,7 @@ import com.github.mikephil.charting.data.Entry;
 import com.github.mikephil.charting.data.LineData;
 import com.github.mikephil.charting.data.LineDataSet;
 
+import java.nio.ByteBuffer;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -54,8 +74,8 @@ public class MainActivity extends AppCompatActivity implements EasyPermissions.P
     LinearLayout linSelect;
     @BindView(R.id.radionDate)
     TextView radionDate;
-    @BindView(R.id.radionTime)
-    TextView radionTime;
+    @BindView(R.id.tvSaveImg)
+    TextView tvSaveImg;
     @BindView(R.id.tvOnDirectCurrent)
     TextView tvOnDirectCurrent;
     @BindView(R.id.tvOffDirectCurrent)
@@ -82,7 +102,6 @@ public class MainActivity extends AppCompatActivity implements EasyPermissions.P
     List<Entry> entriesOnACCurrent = new ArrayList<>();
     List<Entry> entriesOnACVoltage = new ArrayList<>();
     String[] PERMS = {Manifest.permission.READ_EXTERNAL_STORAGE, Manifest.permission.WRITE_EXTERNAL_STORAGE};
-    public static final int TAG_ONE = 1;
     boolean on_direct_current = false;
     boolean off_direct_current = true;
     boolean on_ac_current = false;
@@ -92,7 +111,17 @@ public class MainActivity extends AppCompatActivity implements EasyPermissions.P
     boolean on_ac_voltage = false;
     boolean off_ac_voltage = false;
     private TimePickerView datePicker;
+    private int mWindowWidth;
+    private int mWindowHeight;
+    private int mScreenDensity;
+    private ImageReader mImageReader;
+    private WindowManager mWindowManager;
+    private VirtualDisplay mVirtualDisplay;
     LineData lineData = new LineData();
+    Bitmap mBitmap;
+    private static AlertDialogUtil alertDialogUtil;
+    private MediaProjection mMediaProjection;
+    private MediaProjectionManager mMediaProjectionManager;
     LineDataSet dataSetOffDirectCurrent,dataSetOffDirectVoltage,dataSetOffACCurrent,dataSetOffACVoltage,
             dataSetOnDirectCurrent,dataSetOnDirectVoltage,dataSetOnACCurrent,dataSetOnACVoltage;
 
@@ -109,6 +138,16 @@ public class MainActivity extends AppCompatActivity implements EasyPermissions.P
         new BottomUI().hideBottomUIMenu(this.getWindow());
         setContentView(R.layout.activity_main);
         ButterKnife.bind(this);
+        alertDialogUtil = new AlertDialogUtil(this);
+        mMediaProjectionManager = (MediaProjectionManager) getSystemService(MEDIA_PROJECTION_SERVICE);
+        mWindowManager = (WindowManager) getSystemService(Context.WINDOW_SERVICE);
+        mWindowWidth = mWindowManager.getDefaultDisplay().getWidth();
+        mWindowHeight = mWindowManager.getDefaultDisplay().getHeight();
+        DisplayMetrics displayMetrics = new DisplayMetrics();
+        mWindowManager.getDefaultDisplay().getMetrics(displayMetrics);
+        mScreenDensity = displayMetrics.densityDpi;
+        mImageReader = ImageReader.newInstance(mWindowWidth, mWindowHeight, 0x1, 2);
+
         //设置样式
         new ReadConstant().setLineChar(lineChart);
         //请求权限
@@ -231,7 +270,6 @@ public class MainActivity extends AppCompatActivity implements EasyPermissions.P
                 //刷新
                 lineChart.getViewPortHandler().refresh(new Matrix(), lineChart, true);
                 break;
-
             case "off_ac_current_add":
                 dataSetOffACCurrent = new LineDataSet(entriesOffACCurrent, getString(R.string.off_ac_current));
                 dataSetOffACCurrent.setMode(LineDataSet.Mode.CUBIC_BEZIER);
@@ -317,7 +355,7 @@ public class MainActivity extends AppCompatActivity implements EasyPermissions.P
     }
 
     @SuppressLint("ResourceAsColor")
-    @OnClick({R.id.radionDate, R.id.radionTime, R.id.tvOnDirectCurrent, R.id.tvOffDirectCurrent,
+    @OnClick({R.id.radionDate, R.id.tvSaveImg, R.id.tvOnDirectCurrent, R.id.tvOffDirectCurrent,
             R.id.tvOnACCurrent, R.id.tvOffACCurrent, R.id.tvOnDirectVoltage, R.id.tvOffDirectVoltage,
             R.id.tvOnACVoltage, R.id.tvOffACVoltage,R.id.linSetting})
     public void onClick(View view) {
@@ -329,8 +367,21 @@ public class MainActivity extends AppCompatActivity implements EasyPermissions.P
             case R.id.radionDate:
                 showDatePicker();
                 break;
-            case R.id.radionTime:
-                new SelectDateTime().showTimePicker(radionTime, this);
+            case R.id.tvSaveImg:
+                linSelect.setVisibility(View.GONE);
+                linSetting.setVisibility(View.VISIBLE);
+                if (mMediaProjection != null) {
+                    setUpVirtualDisplay();
+                    Handler handler = new Handler();
+                    handler.postDelayed(new Runnable() {
+                        @Override
+                        public void run() {
+                            startCapture();
+                        }
+                    }, 200);
+                }else {
+                    requestMediaProjection();
+                }
                 break;
             case R.id.tvOffDirectCurrent:
                 if (off_direct_current) {
@@ -439,7 +490,94 @@ public class MainActivity extends AppCompatActivity implements EasyPermissions.P
         }
     }
 
+    //创建申请录屏的 Intent
+    private void requestMediaProjection() {
+        Intent captureIntent = mMediaProjectionManager.createScreenCaptureIntent();
+        startActivityForResult(captureIntent, Constant.TAG_ONE);
+    }
 
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent backdata) {
+        super.onActivityResult(requestCode, resultCode, backdata);
+        switch (requestCode) {
+            case Constant.TAG_ONE:
+                if (resultCode == Activity.RESULT_OK) {
+                    new BottomUI().hideBottomUIMenu(this.getWindow());
+                    mMediaProjection = mMediaProjectionManager.getMediaProjection(resultCode, backdata);
+                    if (mMediaProjection != null) {
+                        setUpVirtualDisplay();
+                        Handler handler = new Handler();
+                        handler.postDelayed(new Runnable() {
+                            @Override
+                            public void run() {
+                                startCapture();
+                            }
+                        }, 200);
+                    }
+                } else {
+                    finish();
+                }
+                break;
+        }
+    }
+
+    private void setUpVirtualDisplay() {
+        mVirtualDisplay = mMediaProjection.createVirtualDisplay("ScreenCapture",
+                mWindowWidth, mWindowHeight, mScreenDensity,
+                DisplayManager.VIRTUAL_DISPLAY_FLAG_AUTO_MIRROR,
+                mImageReader.getSurface(), null, null);
+    }
+
+    private void startCapture() {
+        Image image = mImageReader.acquireLatestImage();
+        if (image == null) {
+            Log.e("MainActivity", "image is null.");
+            return;
+        }
+        int width = image.getWidth();
+        int height = image.getHeight();
+        final Image.Plane[] planes = image.getPlanes();
+        final ByteBuffer buffer = planes[0].getBuffer();
+        int pixelStride = planes[0].getPixelStride();
+        int rowStride = planes[0].getRowStride();
+        int rowPadding = rowStride - pixelStride * width;
+        mBitmap = Bitmap.createBitmap(width + rowPadding / pixelStride, height, Bitmap.Config.ARGB_8888);
+        mBitmap.copyPixelsFromBuffer(buffer);
+        mBitmap = Bitmap.createBitmap(mBitmap, 0, 0, width, height);
+        image.close();
+        stopScreenCapture();
+        if (mBitmap != null) {
+            if (mBitmap != null) {
+                alertDialogUtil.showImageDialog(new SaveImageCallBack() {
+                    @Override
+                    public void save(String name) {
+                        boolean backstate = new ImageSave().saveBitmap(MainActivity.this, "/LKCSV/", name, mBitmap);
+                        if (backstate) {
+                            Toast.makeText(MainActivity.this, R.string.save_success, Toast.LENGTH_SHORT).show();
+                        } else {
+                            Toast.makeText(MainActivity.this, R.string.save_faile, Toast.LENGTH_SHORT).show();
+                        }
+                    }
+
+                    @Override
+                    public void cancle() {
+
+                    }
+                });
+            } else {
+                System.out.println("bitmap is NULL!");
+            }
+        } else {
+            System.out.println("bitmap is NULL!");
+        }
+    }
+
+    private void stopScreenCapture() {
+        if (mVirtualDisplay != null) {
+            mVirtualDisplay.release();
+            mVirtualDisplay = null;
+        }
+    }
     //根据时间选择
     public void showDatePicker() {
         datePicker = new TimePickerView.Builder(this, new TimePickerView.OnTimeSelectListener() {

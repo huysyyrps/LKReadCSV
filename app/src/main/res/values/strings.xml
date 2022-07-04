@@ -10,4 +10,10 @@
     <string name="off_direct_voltage">断电直流电压</string>
     <string name="on_ac_voltage">通电交流电压</string>
     <string name="off_ac_voltage">断电交流电压</string>
+
+    <string name="save_success">保存成功</string>
+    <string name="save_faile">保存失败</string>
+
+    <string name="save">保存</string>
+    <string name="cancle">取消</string>
 </resources>
