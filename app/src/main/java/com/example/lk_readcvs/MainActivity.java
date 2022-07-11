@@ -17,6 +17,7 @@ import android.media.Image;
 import android.media.ImageReader;
 import android.media.projection.MediaProjection;
 import android.media.projection.MediaProjectionManager;
+import android.nfc.Tag;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
@@ -37,6 +38,8 @@ import androidx.appcompat.app.AppCompatActivity;
 import com.bigkoo.pickerview.TimePickerView;
 import com.example.lk_readcvs.Util.AlertDialogUtil;
 import com.example.lk_readcvs.Util.Constant;
+import com.example.lk_readcvs.Util.DataBean;
+import com.example.lk_readcvs.Util.ExcelUtil;
 import com.example.lk_readcvs.Util.ImageSave;
 import com.example.lk_readcvs.Util.ReadCSVCallBack;
 import com.example.lk_readcvs.Util.ReadCSVThread;
@@ -49,7 +52,12 @@ import com.github.mikephil.charting.components.XAxis;
 import com.github.mikephil.charting.data.Entry;
 import com.github.mikephil.charting.data.LineData;
 import com.github.mikephil.charting.data.LineDataSet;
+import com.github.mikephil.charting.highlight.Highlight;
+import com.github.mikephil.charting.listener.OnChartValueSelectedListener;
 
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -57,6 +65,7 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
+import java.util.Locale;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
@@ -72,8 +81,10 @@ public class MainActivity extends AppCompatActivity implements EasyPermissions.P
     LinearLayout linSetting;
     @BindView(R.id.linSelect)
     LinearLayout linSelect;
-    @BindView(R.id.radionDate)
-    TextView radionDate;
+    @BindView(R.id.radionStartDate)
+    TextView radionStartDate;
+    @BindView(R.id.tvEndTime)
+    TextView tvEndTime;
     @BindView(R.id.tvSaveImg)
     TextView tvSaveImg;
     @BindView(R.id.tvOnDirectCurrent)
@@ -92,6 +103,12 @@ public class MainActivity extends AppCompatActivity implements EasyPermissions.P
     TextView tvOnACVoltage;
     @BindView(R.id.tvOffACVoltage)
     TextView tvOffACVoltage;
+    @BindView(R.id.tvDelect)
+    TextView tvDelect;
+    @BindView(R.id.tvSave)
+    TextView tvSave;
+    @BindView(R.id.icBack)
+    ImageView icBack;
 
     List<Entry> entriesOffDirectCurrent = new ArrayList<>();
     List<Entry> entriesOffDirectVoltage = new ArrayList<>();
@@ -122,6 +139,9 @@ public class MainActivity extends AppCompatActivity implements EasyPermissions.P
     private static AlertDialogUtil alertDialogUtil;
     private MediaProjection mMediaProjection;
     private MediaProjectionManager mMediaProjectionManager;
+    String path = Environment.getExternalStorageDirectory() + "/";
+    List<DataBean> dataList = new ArrayList<>();
+    String[] colName = {"日期","时间","断电直流电流","断电直流电压","断电交流电流","断电交流电压","通电直流电流","通电直流电压","通电交流电流","通电交流电压"};
     LineDataSet dataSetOffDirectCurrent,dataSetOffDirectVoltage,dataSetOffACCurrent,dataSetOffACVoltage,
             dataSetOnDirectCurrent,dataSetOnDirectVoltage,dataSetOnACCurrent,dataSetOnACVoltage;
 
@@ -153,17 +173,16 @@ public class MainActivity extends AppCompatActivity implements EasyPermissions.P
         //请求权限
         if (EasyPermissions.hasPermissions(this, PERMS)) {
             // 已经申请过权限，做想做的事
-            readCSVData(radionDate.getText().toString().trim());
+            readCSVData(radionStartDate.getText().toString().trim(),"");
         } else {
             // 没有申请过权限，现在去申请
             EasyPermissions.requestPermissions(this, "PERMISSION_STORAGE_MSG", TAG_ONE, PERMS);
         }
     }
 
-    /**
-     * 读取数据
-     */
-    private void readCSVData(String date) {
+
+    //读取数据
+    private void readCSVData(String date, String tag) {
         String path = Environment.getExternalStorageDirectory() + "/";
         String name = "DATA.CSV";
         new ReadCSVThread(path, name, new ReadCSVCallBack() {
@@ -178,11 +197,13 @@ public class MainActivity extends AppCompatActivity implements EasyPermissions.P
                     entriesOnDirectVoltage = new ArrayList<>();
                     entriesOnACCurrent = new ArrayList<>();
                     entriesOnACVoltage = new ArrayList<>();
+                    dataList = new ArrayList<>();
                     for (int i = 0; i < sb.size(); i++) {
+                        DataBean dataBean;
                         String itemData = sb.get(i);
                         String[] arrayData = itemData.split(",");
                         if (itemData != null && arrayData.length > 9) {
-                            if (date.equals("日期")){
+                            if (date.equals("开始时间")){
                                 entriesOffDirectCurrent.add(new Entry(i, Float.valueOf(arrayData[2])));
                                 entriesOffDirectVoltage.add(new Entry(i, Float.valueOf(arrayData[3])));
                                 entriesOffACCurrent.add(new Entry(i, Float.valueOf(arrayData[4])));
@@ -191,15 +212,26 @@ public class MainActivity extends AppCompatActivity implements EasyPermissions.P
                                 entriesOnDirectVoltage.add(new Entry(i, Float.valueOf(arrayData[7])));
                                 entriesOnACCurrent.add(new Entry(i, Float.valueOf(arrayData[8])));
                                 entriesOnACVoltage.add(new Entry(i, Float.valueOf(arrayData[9])));
-                            }else if (itemData.split(",")[0].equals(date)){
-                                entriesOffDirectCurrent.add(new Entry(i, Float.valueOf(arrayData[2])));
-                                entriesOffDirectVoltage.add(new Entry(i, Float.valueOf(arrayData[3])));
-                                entriesOffACCurrent.add(new Entry(i, Float.valueOf(arrayData[4])));
-                                entriesOffACVoltage.add(new Entry(i, Float.valueOf(arrayData[5])));
-                                entriesOnDirectCurrent.add(new Entry(i, Float.valueOf(arrayData[6])));
-                                entriesOnDirectVoltage.add(new Entry(i, Float.valueOf(arrayData[7])));
-                                entriesOnACCurrent.add(new Entry(i, Float.valueOf(arrayData[8])));
-                                entriesOnACVoltage.add(new Entry(i, Float.valueOf(arrayData[9])));
+                                dataBean = new DataBean(arrayData[0],arrayData[1],arrayData[2]
+                                        ,arrayData[3],arrayData[4],arrayData[5],arrayData[6],arrayData[7],arrayData[8],arrayData[9]);
+                                dataList.add(dataBean);
+                            }else if (itemData.split(",")[0].equals(date.split(" ")[0])){
+                                String time = itemData.split(",")[1];
+                                String selectTime = time.split(":")[0]+":"+time.split(":")[1];
+                                Log.e("XXX",selectTime+"-------"+date.split(" ")[1]);
+                                if (selectTime.equals(date.split(" ")[1])){
+                                    entriesOffDirectCurrent.add(new Entry(i, Float.valueOf(arrayData[2])));
+                                    entriesOffDirectVoltage.add(new Entry(i, Float.valueOf(arrayData[3])));
+                                    entriesOffACCurrent.add(new Entry(i, Float.valueOf(arrayData[4])));
+                                    entriesOffACVoltage.add(new Entry(i, Float.valueOf(arrayData[5])));
+                                    entriesOnDirectCurrent.add(new Entry(i, Float.valueOf(arrayData[6])));
+                                    entriesOnDirectVoltage.add(new Entry(i, Float.valueOf(arrayData[7])));
+                                    entriesOnACCurrent.add(new Entry(i, Float.valueOf(arrayData[8])));
+                                    entriesOnACVoltage.add(new Entry(i, Float.valueOf(arrayData[9])));
+                                    dataBean = new DataBean(arrayData[0],arrayData[1],arrayData[2]
+                                            ,arrayData[3],arrayData[4],arrayData[5],arrayData[6],arrayData[7],arrayData[8],arrayData[9]);
+                                    dataList.add(dataBean);
+                                }
                             }
                         }
                     }
@@ -344,7 +376,7 @@ public class MainActivity extends AppCompatActivity implements EasyPermissions.P
     @Override
     public void onPermissionsGranted(int requestCode, List<String> list) {
         // 已经申请过权限，做想做的事
-        readCSVData(radionDate.getText().toString().trim());
+        readCSVData(radionStartDate.getText().toString().trim());
     }
 
     @Override
@@ -355,17 +387,50 @@ public class MainActivity extends AppCompatActivity implements EasyPermissions.P
     }
 
     @SuppressLint("ResourceAsColor")
-    @OnClick({R.id.radionDate, R.id.tvSaveImg, R.id.tvOnDirectCurrent, R.id.tvOffDirectCurrent,
+    @OnClick({R.id.radionStartDate, R.id.tvSaveImg, R.id.tvOnDirectCurrent, R.id.tvOffDirectCurrent,
             R.id.tvOnACCurrent, R.id.tvOffACCurrent, R.id.tvOnDirectVoltage, R.id.tvOffDirectVoltage,
-            R.id.tvOnACVoltage, R.id.tvOffACVoltage,R.id.linSetting})
+            R.id.tvOnACVoltage, R.id.tvOffACVoltage,R.id.linSetting,R.id.tvDelect,R.id.tvSave,R.id.icBack})
     public void onClick(View view) {
         switch (view.getId()) {
             case R.id.linSetting:
                 linSelect.setVisibility(View.VISIBLE);
                 linSetting.setVisibility(View.GONE);
                 break;
-            case R.id.radionDate:
-                showDatePicker();
+            case R.id.icBack:
+                linSelect.setVisibility(View.GONE);
+                linSetting.setVisibility(View.VISIBLE);
+                break;
+            case R.id.radionStartDate:
+                showDatePicker(radionStartDate,"start");
+                break;
+            case R.id.tvDelect:
+                path = Environment.getExternalStorageDirectory() + "/";
+                String name = "DATA.CSV";
+                new ReadConstant().cleanData(path,name,this);
+                break;
+            case R.id.tvSave:
+                alertDialogUtil.showImageDialog(new SaveImageCallBack() {
+                    @Override
+                    public void save(String name) {
+                        String filePath;
+                        if (name.equals("")){
+                            filePath = path + getNowDate();
+                        }else {
+                            filePath = path + name + ".xls";
+                        }
+//                        filePath = path + "1111.xls";
+                        ExcelUtil.initExcel(filePath, colName);
+                        ExcelUtil.writeObjListToExcel(dataList, filePath, MainActivity.this);
+                    }
+
+                    @Override
+                    public void cancle() {
+
+                    }
+                });
+//                String filePath = path + "1111.xls";
+//                ExcelUtil.initExcel(filePath, colName);
+//                ExcelUtil.writeObjListToExcel(dataList, filePath, this);
                 break;
             case R.id.tvSaveImg:
                 linSelect.setVisibility(View.GONE);
@@ -490,6 +555,7 @@ public class MainActivity extends AppCompatActivity implements EasyPermissions.P
         }
     }
 
+
     //创建申请录屏的 Intent
     private void requestMediaProjection() {
         Intent captureIntent = mMediaProjectionManager.createScreenCaptureIntent();
@@ -579,12 +645,13 @@ public class MainActivity extends AppCompatActivity implements EasyPermissions.P
         }
     }
     //根据时间选择
-    public void showDatePicker() {
+    public void showDatePicker(TextView textView, String start) {
         datePicker = new TimePickerView.Builder(this, new TimePickerView.OnTimeSelectListener() {
             @Override
             public void onTimeSelect(Date date, View v) {
-                SimpleDateFormat format = new SimpleDateFormat("yyyy年M月d日");
-                radionDate.setText(format.format(date));
+                SimpleDateFormat format = new SimpleDateFormat("yyyy年M月d日 H:m");
+                Log.e("XXX",format.format(date));
+                textView.setText(format.format(date));
                 lineData.removeDataSet(dataSetOffDirectCurrent);
                 lineData.removeDataSet(dataSetOffDirectVoltage);
                 lineData.removeDataSet(dataSetOffACCurrent);
@@ -595,7 +662,7 @@ public class MainActivity extends AppCompatActivity implements EasyPermissions.P
                 lineData.removeDataSet(dataSetOnACVoltage);
                 lineChart.notifyDataSetChanged();
                 lineChart.getViewPortHandler().refresh(new Matrix(), lineChart, true);
-                readCSVData(format.format(date));
+                readCSVData(format.format(date),start);
             }
         }).setSubmitText("确定")
                 .setCancelText("取消")
@@ -604,13 +671,13 @@ public class MainActivity extends AppCompatActivity implements EasyPermissions.P
                 .setSubCalSize(16)
                 //.isDialog(true) //是否对话框样式显示（显示在页面中间）
                 //.isCyclic(true) //是否循环滚动
-                .setType(new boolean[]{true, true, true, false, false, false}) //显示“年月日时分秒”的哪几项
+                .setType(new boolean[]{true, true, true, true, true, false}) //显示“年月日时分秒”的哪几项
                 .isCenterLabel(false) //是否只显示选中的label文字，false则每项item全部都带有 label
                 .build();
         //设置显示的日期
         Calendar calendar = Calendar.getInstance();
         try {
-            calendar.setTime(new SimpleDateFormat("yyyy-MM-dd").parse(new SimpleDateFormat("yyyy-MM-dd").format(new Date(System.currentTimeMillis()))));
+            calendar.setTime(new SimpleDateFormat("yyyy年M月d日 H:m").parse(new SimpleDateFormat("yyyy年M月d日 H:m").format(new Date(System.currentTimeMillis()))));
         } catch (ParseException e) {
             //e.printStackTrace();
         }
@@ -618,6 +685,12 @@ public class MainActivity extends AppCompatActivity implements EasyPermissions.P
         //calendar.set(1997,9,10);
         datePicker.setDate(calendar);
         datePicker.show();
+    }
+
+    //获取当前时间,用来给文件夹命名
+    private String getNowDate() {
+        SimpleDateFormat format = new SimpleDateFormat("yyyyMMdd-HHmmss", Locale.US);
+        return format.format(new Date()) + ".xls";
     }
 
     Handler handler = new Handler() {

@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">LK-ReadCVS</string>
+    <string name="app_name">SCM数据处理系统</string>
     <string name="select_setting">设置</string>
     <string name="on_direct_current">通电直流电流</string>
     <string name="off_direct_current">断电直流电流</string>
@@ -16,4 +16,10 @@
 
     <string name="save">保存</string>
     <string name="cancle">取消</string>
+
+    <string name="delect">清除数据</string>
+    <string name="save_data">数据另存为</string>
+
+    <string name="delect_success">清除成功</string>
+    <string name="delect_faile">清除失败</string>
 </resources>

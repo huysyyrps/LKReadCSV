@@ -5,131 +5,233 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     tools:context=".MainActivity">
+
     <com.github.mikephil.charting.charts.LineChart
         android:id="@+id/lineChart"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_above="@+id/seekBar1" />
+
     <FrameLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:background="@color/back">
+
         <LinearLayout
             android:id="@+id/linSetting"
             android:layout_width="40dp"
             android:layout_height="wrap_content"
             android:layout_margin="4dp"
-            android:orientation="vertical"
-            android:background="#e0a70e">
+            android:background="#e0a70e"
+            android:orientation="vertical">
+
             <ImageView
                 android:id="@+id/ivOpen"
                 android:layout_width="20dp"
                 android:layout_height="20dp"
                 android:layout_gravity="center"
-                android:src="@drawable/ic_select1"/>
+                android:src="@drawable/ic_select1" />
+
             <TextView
                 android:layout_width="40dp"
-                android:textSize="13dp"
-                android:gravity="center"
-                android:textColor="@color/white"
                 android:layout_height="wrap_content"
-                android:text="@string/select_setting"/>
+                android:gravity="center"
+                android:text="@string/select_setting"
+                android:textColor="@color/white"
+                android:textSize="13dp" />
         </LinearLayout>
+
         <LinearLayout
             android:id="@+id/linSelect"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="10dp"
-            android:orientation="vertical"
             android:layout_marginRight="10dp"
-            android:layout_marginLeft="20dp"
+            android:orientation="horizontal"
             android:visibility="gone">
 
+            <ImageView
+                android:id="@+id/icBack"
+                android:layout_width="30dp"
+                android:layout_height="30dp"
+                android:src="@drawable/ic_back"
+                android:layout_marginLeft="10dp"
+                android:layout_gravity="center_vertical"/>
+
             <LinearLayout
                 android:layout_width="match_parent"
-                android:layout_height="0dp"
-                android:layout_weight="1"
-                android:orientation="horizontal">
-                <TextView
-                    android:id="@+id/radionDate"
-                    style="@style/RadionButton"
-                    android:layout_width="80dp"
-                    android:layout_height="25dp"
-                    android:text="日期"
-                    android:background="@color/color_bg_selected"/>
+                android:layout_height="wrap_content"
+                android:orientation="vertical">
 
-                <TextView
-                    android:id="@+id/tvOffDirectCurrent"
-                    style="@style/RadionButton"
-                    android:layout_width="80dp"
-                    android:layout_height="25dp"
-                    android:text="@string/off_direct_current"
-                    android:background="@color/holo_red_dark"/>
-                <TextView
-                    android:id="@+id/tvOffDirectVoltage"
-                    style="@style/RadionButton"
-                    android:layout_width="80dp"
-                    android:layout_height="25dp"
-                    android:text="@string/off_direct_voltage"
-                    android:background="@color/color_bg_selected"/>
-                <TextView
-                    android:id="@+id/tvOffACCurrent"
-                    style="@style/RadionButton"
-                    android:layout_width="80dp"
-                    android:layout_height="25dp"
-                    android:text="@string/off_ac_current"
-                    android:background="@color/color_bg_selected"/>
-                <TextView
-                    android:id="@+id/tvOffACVoltage"
-                    style="@style/RadionButton"
-                    android:layout_width="80dp"
-                    android:layout_height="25dp"
-                    android:text="@string/off_ac_voltage"
-                    android:background="@color/color_bg_selected"/>
-            </LinearLayout>
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="0dp"
-                android:layout_weight="1"
-                android:orientation="horizontal">
-                <TextView
-                    android:id="@+id/tvSaveImg"
-                    style="@style/RadionButton"
-                    android:layout_width="80dp"
-                    android:layout_height="25dp"
-                    android:text="保存图片"
-                    android:background="@color/color_bg_selected"/>
-                <TextView
-                    android:id="@+id/tvOnDirectCurrent"
-                    style="@style/RadionButton"
-                    android:layout_width="80dp"
-                    android:layout_height="25dp"
-                    android:text="@string/on_direct_current"
-                    android:background="@color/color_bg_selected"/>
-                <TextView
-                    android:id="@+id/tvOnDirectVoltage"
-                    style="@style/RadionButton"
-                    android:layout_width="80dp"
-                    android:layout_height="25dp"
-                    android:text="@string/on_direct_voltage"
-                    android:background="@color/color_bg_selected"/>
-                <TextView
-                    android:id="@+id/tvOnACCurrent"
-                    style="@style/RadionButton"
-                    android:layout_width="80dp"
-                    android:layout_height="25dp"
-                    android:text="@string/on_ac_current"
-                    android:background="@color/color_bg_selected"/>
-                <TextView
-                    android:id="@+id/tvOnACVoltage"
-                    style="@style/RadionButton"
-                    android:layout_width="80dp"
-                    android:layout_height="25dp"
-                    android:text="@string/on_ac_voltage"
-                    android:background="@color/color_bg_selected"/>
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="0dp"
+                    android:layout_weight="1"
+                    android:layout_marginBottom="10dp"
+                    android:orientation="horizontal">
 
+                    <TextView
+                        android:id="@+id/radionStartDate"
+                        style="@style/RadionButton"
+                        android:layout_width="80dp"
+                        android:layout_height="25dp"
+                        android:background="@color/color_bg_selected"
+                        android:text="开始时间" />
+
+                    <TextView
+                        android:id="@+id/tvOffDirectCurrent"
+                        style="@style/RadionButton"
+                        android:layout_width="80dp"
+                        android:layout_height="25dp"
+                        android:background="@color/holo_red_dark"
+                        android:text="@string/off_direct_current" />
+
+                    <TextView
+                        android:id="@+id/tvOffDirectVoltage"
+                        style="@style/RadionButton"
+                        android:layout_width="80dp"
+                        android:layout_height="25dp"
+                        android:background="@color/color_bg_selected"
+                        android:text="@string/off_direct_voltage" />
+
+                    <TextView
+                        android:id="@+id/tvOffACCurrent"
+                        style="@style/RadionButton"
+                        android:layout_width="80dp"
+                        android:layout_height="25dp"
+                        android:background="@color/color_bg_selected"
+                        android:text="@string/off_ac_current" />
+
+                    <TextView
+                        android:id="@+id/tvOffACVoltage"
+                        style="@style/RadionButton"
+                        android:layout_width="80dp"
+                        android:layout_height="25dp"
+                        android:background="@color/color_bg_selected"
+                        android:text="@string/off_ac_voltage" />
+
+                    <TextView
+                        android:id="@+id/tvDelect"
+                        style="@style/RadionButton"
+                        android:layout_width="80dp"
+                        android:layout_height="25dp"
+                        android:background="@color/color_bg_selected"
+                        android:text="@string/delect" />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="0dp"
+                    android:layout_weight="1"
+                    android:layout_marginBottom="10dp"
+                    android:orientation="horizontal">
+
+                    <TextView
+                        android:id="@+id/tvEndTime"
+                        style="@style/RadionButton"
+                        android:layout_width="80dp"
+                        android:layout_height="25dp"
+                        android:background="@color/color_bg_selected"
+                        android:text="结束时间" />
+
+                    <TextView
+                        android:id="@+id/tvOnDirectCurrent"
+                        style="@style/RadionButton"
+                        android:layout_width="80dp"
+                        android:layout_height="25dp"
+                        android:background="@color/color_bg_selected"
+                        android:text="@string/on_direct_current" />
+
+                    <TextView
+                        android:id="@+id/tvOnDirectVoltage"
+                        style="@style/RadionButton"
+                        android:layout_width="80dp"
+                        android:layout_height="25dp"
+                        android:background="@color/color_bg_selected"
+                        android:text="@string/on_direct_voltage" />
+
+                    <TextView
+                        android:id="@+id/tvOnACCurrent"
+                        style="@style/RadionButton"
+                        android:layout_width="80dp"
+                        android:layout_height="25dp"
+                        android:background="@color/color_bg_selected"
+                        android:text="@string/on_ac_current" />
+
+                    <TextView
+                        android:id="@+id/tvOnACVoltage"
+                        style="@style/RadionButton"
+                        android:layout_width="80dp"
+                        android:layout_height="25dp"
+                        android:background="@color/color_bg_selected"
+                        android:text="@string/on_ac_voltage" />
+
+                    <TextView
+                        android:id="@+id/tvSave"
+                        style="@style/RadionButton"
+                        android:layout_width="80dp"
+                        android:layout_height="25dp"
+                        android:background="@color/color_bg_selected"
+                        android:text="@string/save_data" />
+
+                </LinearLayout>
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="0dp"
+                    android:layout_weight="1"
+                    android:orientation="horizontal">
+
+                    <TextView
+                        android:id="@+id/tvSaveImg"
+                        style="@style/RadionButton"
+                        android:layout_width="80dp"
+                        android:layout_height="25dp"
+                        android:background="@color/color_bg_selected"
+                        android:text="保存图片" />
+
+                    <TextView
+                        style="@style/RadionButton"
+                        android:visibility="invisible"
+                        android:layout_width="80dp"
+                        android:layout_height="25dp"
+                        android:background="@color/color_bg_selected"
+                        android:text="@string/on_direct_current" />
+
+                    <TextView
+                        style="@style/RadionButton"
+                        android:visibility="invisible"
+                        android:layout_width="80dp"
+                        android:layout_height="25dp"
+                        android:background="@color/color_bg_selected"
+                        android:text="@string/on_direct_voltage" />
+
+                    <TextView
+                        style="@style/RadionButton"
+                        android:visibility="invisible"
+                        android:layout_width="80dp"
+                        android:layout_height="25dp"
+                        android:background="@color/color_bg_selected"
+                        android:text="@string/on_ac_current" />
+
+                    <TextView
+                        style="@style/RadionButton"
+                        android:visibility="invisible"
+                        android:layout_width="80dp"
+                        android:layout_height="25dp"
+                        android:background="@color/color_bg_selected"
+                        android:text="@string/on_ac_voltage" />
+
+                    <TextView
+                        style="@style/RadionButton"
+                        android:visibility="invisible"
+                        android:layout_width="80dp"
+                        android:layout_height="25dp"
+                        android:background="@color/color_bg_selected"
+                        android:text="@string/save_data" />
+
+                </LinearLayout>
             </LinearLayout>
         </LinearLayout>
-    </FrameLayout>
 
+    </FrameLayout>
 </FrameLayout>

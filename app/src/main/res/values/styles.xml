@@ -110,14 +110,16 @@
         <item name="android:layout_weight">1</item>
         <item name="android:button">@null</item>
         <item name="android:paddingTop">3dip</item>
-        <item name="android:textSize">13dip</item>
+        <item name="android:textSize">11dip</item>
         <item name="android:paddingBottom">6dip</item>
+        <item name="android:paddingLeft">6dip</item>
+        <item name="android:paddingRight">6dip</item>
         <item name="android:gravity">center</item>
         <item name="android:layout_gravity">center</item>
-        <item name="android:layout_marginTop">10dp</item>
-        <item name="android:layout_marginBottom">10dp</item>
-        <item name="android:layout_marginRight">20dp</item>
-        <item name="android:layout_marginLeft">20dp</item>
+<!--        <item name="android:layout_marginTop">10dp</item>-->
+<!--        <item name="android:layout_marginBottom">10dp</item>-->
+        <item name="android:layout_marginRight">10dp</item>
+        <item name="android:layout_marginLeft">10dp</item>
 <!--        <item name="android:textColor">@color/radionbutton_select</item>-->
         <item name="android:textColor">@color/whith</item>
     </style>

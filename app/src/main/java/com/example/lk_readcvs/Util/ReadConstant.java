@@ -1,9 +1,17 @@
 package com.example.lk_readcvs.Util;
 
 import android.graphics.Color;
+import android.os.Environment;
+import android.widget.Toast;
 
+import com.example.lk_readcvs.MainActivity;
+import com.example.lk_readcvs.R;
 import com.github.mikephil.charting.charts.LineChart;
 import com.github.mikephil.charting.components.XAxis;
+
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
 
 public class ReadConstant {
     /**
@@ -24,6 +32,24 @@ public class ReadConstant {
         XAxis xAxis = lineChart.getXAxis();
         xAxis.setEnabled(true);//设置轴启用或禁用 如果禁用以下的设置全部不生效
         xAxis.setPosition(XAxis.XAxisPosition.BOTTOM);//设置x轴的显示位置
+    }
+
+    /**
+     * 清除数据
+     */
+    public void cleanData(String folder, String fileName, MainActivity mainActivity) {
+        File inFile = new File(folder + fileName);
+        FileWriter fw = null;
+        try {
+            fw = new FileWriter(inFile);
+            fw.write("");
+            fw.flush();
+            fw.close();
+            Toast.makeText(mainActivity, R.string.delect_success, Toast.LENGTH_SHORT).show();
+        } catch (IOException e) {
+            e.printStackTrace();
+            Toast.makeText(mainActivity, R.string.delect_faile, Toast.LENGTH_SHORT).show();
+        }
     }
 
 }
