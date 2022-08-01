@@ -22,7 +22,11 @@ public class ReadCSVThread extends Thread {
     }
     @Override
     public void run() {
-        File inFile = new File(folder + fileName);
+//        File inFile = new File(folder + fileName);
+        File inFile = new File(folder , fileName);
+        if (inFile.exists()){
+            Log.e("XXX","11111");
+        }
         List<String> listData = new ArrayList<>();
         String inString;
         try {

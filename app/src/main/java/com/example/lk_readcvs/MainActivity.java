@@ -18,12 +18,15 @@ import android.media.Image;
 import android.media.ImageReader;
 import android.media.projection.MediaProjection;
 import android.media.projection.MediaProjectionManager;
+import android.net.Uri;
 import android.nfc.Tag;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
 import android.os.Handler;
 import android.os.Message;
+import android.os.storage.StorageManager;
+import android.os.storage.StorageVolume;
 import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.View;
@@ -35,6 +38,7 @@ import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.documentfile.provider.DocumentFile;
 
 import com.bigkoo.pickerview.TimePickerView;
 import com.example.lk_readcvs.Util.AlertDialogUtil;
@@ -59,6 +63,9 @@ import com.github.mikephil.charting.listener.OnChartValueSelectedListener;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.lang.reflect.Array;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.nio.ByteBuffer;
 import java.text.DateFormat;
 import java.text.ParseException;
@@ -120,6 +127,7 @@ public class MainActivity extends AppCompatActivity implements EasyPermissions.P
     List<Entry> entriesOnDirectVoltage = new ArrayList<>();
     List<Entry> entriesOnACCurrent = new ArrayList<>();
     List<Entry> entriesOnACVoltage = new ArrayList<>();
+    //,Manifest.permission.MOUNT_UNMOUNT_FILESYSTEMS
     String[] PERMS = {Manifest.permission.READ_EXTERNAL_STORAGE, Manifest.permission.WRITE_EXTERNAL_STORAGE};
     boolean on_direct_current = false;
     boolean off_direct_current = true;
@@ -146,7 +154,7 @@ public class MainActivity extends AppCompatActivity implements EasyPermissions.P
     String[] colName = {"日期", "时间", "断电直流电流", "断电直流电压", "断电交流电流", "断电交流电压", "通电直流电流", "通电直流电压", "通电交流电流", "通电交流电压"};
     LineDataSet dataSetOffDirectCurrent, dataSetOffDirectVoltage, dataSetOffACCurrent, dataSetOffACVoltage,
             dataSetOnDirectCurrent, dataSetOnDirectVoltage, dataSetOnACCurrent, dataSetOnACVoltage;
-
+    String s;
     //AC交流  direct直流  current电流  voltage电压
 
     @Override
@@ -182,44 +190,72 @@ public class MainActivity extends AppCompatActivity implements EasyPermissions.P
         }
     }
 
+    private static String getStoragePath(Context mContext, boolean is_removale) {
+        StorageManager mStorageManager = (StorageManager) mContext.getSystemService(Context.STORAGE_SERVICE);
+        Class<?> storageVolumeClazz = null;
+        try {
+            storageVolumeClazz = Class.forName("android.os.storage.StorageVolume");
+            Method getVolumeList = mStorageManager.getClass().getMethod("getVolumeList");
+            Method getPath = storageVolumeClazz.getMethod("getPath");
+            Method isRemovable = storageVolumeClazz.getMethod("isRemovable");
+            Object result = getVolumeList.invoke(mStorageManager);
+            final int length = Array.getLength(result);
+            for (int i = 0; i < length; i++) {
+                Object storageVolumeElement = Array.get(result, i);
+                String path = (String) getPath.invoke(storageVolumeElement);
+                boolean removable = (Boolean) isRemovable.invoke(storageVolumeElement);
+                if (is_removale == removable) {
+                    return path;
+                }
+            }
+        } catch (ClassNotFoundException e) {
+            e.printStackTrace();
+        } catch (InvocationTargetException e) {
+            e.printStackTrace();
+        } catch (NoSuchMethodException e) {
+            e.printStackTrace();
+        } catch (IllegalAccessException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
 
     //读取数据
     private void readCSVData(String startDate, String endDate) {
-        String path = Environment.getExternalStorageDirectory() + "/";
-        String name = "DATA.CSV";
-        new ReadCSVThread(path, name, new ReadCSVCallBack() {
-            @Override
-            public void success(List<String> sb) {
-                if (sb != null) {
-                    entriesOffDirectCurrent = new ArrayList<>();
-                    entriesOffDirectVoltage = new ArrayList<>();
-                    entriesOffACCurrent = new ArrayList<>();
-                    entriesOffACVoltage = new ArrayList<>();
-                    entriesOnDirectCurrent = new ArrayList<>();
-                    entriesOnDirectVoltage = new ArrayList<>();
-                    entriesOnACCurrent = new ArrayList<>();
-                    entriesOnACVoltage = new ArrayList<>();
-                    dataList = new ArrayList<>();
-                    for (int i = 0; i < sb.size(); i++) {
-                        DataBean dataBean;
-                        String itemData = sb.get(i);
-                        String[] arrayData = itemData.split(",");
-                        if (itemData != null && arrayData.length > 9) {
-                            if (startDate.equals("开始时间") && endDate.equals("结束时间")) {
-                                entriesOffDirectCurrent.add(new Entry(i, Float.valueOf(arrayData[1])));
-                                entriesOffDirectVoltage.add(new Entry(i, Float.valueOf(arrayData[2])));
-                                entriesOffACCurrent.add(new Entry(i, Float.valueOf(arrayData[3])));
-                                entriesOffACVoltage.add(new Entry(i, Float.valueOf(arrayData[4])));
-                                entriesOnDirectCurrent.add(new Entry(i, Float.valueOf(arrayData[5])));
-                                entriesOnDirectVoltage.add(new Entry(i, Float.valueOf(arrayData[6])));
-                                entriesOnACCurrent.add(new Entry(i, Float.valueOf(arrayData[7])));
-                                entriesOnACVoltage.add(new Entry(i, Float.valueOf(arrayData[8])));
-                                dataBean = new DataBean(arrayData[0], arrayData[1], arrayData[2]
-                                        , arrayData[3], arrayData[4], arrayData[5], arrayData[6], arrayData[7], arrayData[8]);
-                                dataList.add(dataBean);
-                            } else if (!startDate.equals("开始时间") && endDate.equals("结束时间")) {
-                                String vlaTime = arrayData[0];
-                                if (!compareDate(startDate, vlaTime)) {
+        // 判断手机上是否插入了SD卡
+        if (Environment.getExternalStorageState().equals(Environment.MEDIA_MOUNTED)){
+            // 获取SD卡的目录
+//            File  dir = Environment.getExternalStorageDirectory();
+//            String path = null;
+//            try {
+//                path = Environment.getExternalStorageDirectory().getCanonicalPath() + "/";
+//            } catch (IOException e) {
+//                e.printStackTrace();
+//            }
+//            File sdCardDir = Environment.getExternalStorageDirectory();
+            //filename = Environment.getExternalStorageDirectory().getCanonicalPath() + "/" + filename;
+            s = getStoragePath(this,true);
+            String name = "DATA.CSV";
+            new ReadCSVThread(s, name, new ReadCSVCallBack() {
+                @Override
+                public void success(List<String> sb) {
+                    if (sb != null) {
+                        entriesOffDirectCurrent = new ArrayList<>();
+                        entriesOffDirectVoltage = new ArrayList<>();
+                        entriesOffACCurrent = new ArrayList<>();
+                        entriesOffACVoltage = new ArrayList<>();
+                        entriesOnDirectCurrent = new ArrayList<>();
+                        entriesOnDirectVoltage = new ArrayList<>();
+                        entriesOnACCurrent = new ArrayList<>();
+                        entriesOnACVoltage = new ArrayList<>();
+                        dataList = new ArrayList<>();
+                        for (int i = 0; i < sb.size(); i++) {
+                            DataBean dataBean;
+                            String itemData = sb.get(i);
+                            String[] arrayData = itemData.split(",");
+                            if (itemData != null && arrayData.length > 9) {
+                                if (startDate.equals("开始时间") && endDate.equals("结束时间")) {
                                     entriesOffDirectCurrent.add(new Entry(i, Float.valueOf(arrayData[1])));
                                     entriesOffDirectVoltage.add(new Entry(i, Float.valueOf(arrayData[2])));
                                     entriesOffACCurrent.add(new Entry(i, Float.valueOf(arrayData[3])));
@@ -231,25 +267,23 @@ public class MainActivity extends AppCompatActivity implements EasyPermissions.P
                                     dataBean = new DataBean(arrayData[0], arrayData[1], arrayData[2]
                                             , arrayData[3], arrayData[4], arrayData[5], arrayData[6], arrayData[7], arrayData[8]);
                                     dataList.add(dataBean);
-                                }
-                            } else if (startDate.equals("开始时间") && !endDate.equals("结束时间")) {
-                                String vlaTime = arrayData[0];
-                                if (compareDate(endDate, vlaTime)) {
-                                    entriesOffDirectCurrent.add(new Entry(i, Float.valueOf(arrayData[1])));
-                                    entriesOffDirectVoltage.add(new Entry(i, Float.valueOf(arrayData[2])));
-                                    entriesOffACCurrent.add(new Entry(i, Float.valueOf(arrayData[3])));
-                                    entriesOffACVoltage.add(new Entry(i, Float.valueOf(arrayData[4])));
-                                    entriesOnDirectCurrent.add(new Entry(i, Float.valueOf(arrayData[5])));
-                                    entriesOnDirectVoltage.add(new Entry(i, Float.valueOf(arrayData[6])));
-                                    entriesOnACCurrent.add(new Entry(i, Float.valueOf(arrayData[7])));
-                                    entriesOnACVoltage.add(new Entry(i, Float.valueOf(arrayData[8])));
-                                    dataBean = new DataBean(arrayData[0], arrayData[1], arrayData[2]
-                                            , arrayData[3], arrayData[4], arrayData[5], arrayData[6], arrayData[7], arrayData[8]);
-                                    dataList.add(dataBean);
-                                }
-                            } else if (!startDate.equals("开始时间") && !endDate.equals("结束时间")) {
-                                String vlaTime = arrayData[0];
-                                if (!compareDate(startDate, vlaTime)) {
+                                } else if (!startDate.equals("开始时间") && endDate.equals("结束时间")) {
+                                    String vlaTime = arrayData[0];
+                                    if (!compareDate(startDate, vlaTime)) {
+                                        entriesOffDirectCurrent.add(new Entry(i, Float.valueOf(arrayData[1])));
+                                        entriesOffDirectVoltage.add(new Entry(i, Float.valueOf(arrayData[2])));
+                                        entriesOffACCurrent.add(new Entry(i, Float.valueOf(arrayData[3])));
+                                        entriesOffACVoltage.add(new Entry(i, Float.valueOf(arrayData[4])));
+                                        entriesOnDirectCurrent.add(new Entry(i, Float.valueOf(arrayData[5])));
+                                        entriesOnDirectVoltage.add(new Entry(i, Float.valueOf(arrayData[6])));
+                                        entriesOnACCurrent.add(new Entry(i, Float.valueOf(arrayData[7])));
+                                        entriesOnACVoltage.add(new Entry(i, Float.valueOf(arrayData[8])));
+                                        dataBean = new DataBean(arrayData[0], arrayData[1], arrayData[2]
+                                                , arrayData[3], arrayData[4], arrayData[5], arrayData[6], arrayData[7], arrayData[8]);
+                                        dataList.add(dataBean);
+                                    }
+                                } else if (startDate.equals("开始时间") && !endDate.equals("结束时间")) {
+                                    String vlaTime = arrayData[0];
                                     if (compareDate(endDate, vlaTime)) {
                                         entriesOffDirectCurrent.add(new Entry(i, Float.valueOf(arrayData[1])));
                                         entriesOffDirectVoltage.add(new Entry(i, Float.valueOf(arrayData[2])));
@@ -263,8 +297,24 @@ public class MainActivity extends AppCompatActivity implements EasyPermissions.P
                                                 , arrayData[3], arrayData[4], arrayData[5], arrayData[6], arrayData[7], arrayData[8]);
                                         dataList.add(dataBean);
                                     }
+                                } else if (!startDate.equals("开始时间") && !endDate.equals("结束时间")) {
+                                    String vlaTime = arrayData[0];
+                                    if (!compareDate(startDate, vlaTime)) {
+                                        if (compareDate(endDate, vlaTime)) {
+                                            entriesOffDirectCurrent.add(new Entry(i, Float.valueOf(arrayData[1])));
+                                            entriesOffDirectVoltage.add(new Entry(i, Float.valueOf(arrayData[2])));
+                                            entriesOffACCurrent.add(new Entry(i, Float.valueOf(arrayData[3])));
+                                            entriesOffACVoltage.add(new Entry(i, Float.valueOf(arrayData[4])));
+                                            entriesOnDirectCurrent.add(new Entry(i, Float.valueOf(arrayData[5])));
+                                            entriesOnDirectVoltage.add(new Entry(i, Float.valueOf(arrayData[6])));
+                                            entriesOnACCurrent.add(new Entry(i, Float.valueOf(arrayData[7])));
+                                            entriesOnACVoltage.add(new Entry(i, Float.valueOf(arrayData[8])));
+                                            dataBean = new DataBean(arrayData[0], arrayData[1], arrayData[2]
+                                                    , arrayData[3], arrayData[4], arrayData[5], arrayData[6], arrayData[7], arrayData[8]);
+                                            dataList.add(dataBean);
+                                        }
+                                    }
                                 }
-                            }
 //                            else if (itemData.split(",")[0].equals(date.split(" ")[0])){
 //                                String time = itemData.split(",")[1];
 //                                String selectTime = time.split(":")[0]+":"+time.split(":")[1];
@@ -283,52 +333,57 @@ public class MainActivity extends AppCompatActivity implements EasyPermissions.P
 //                                    dataList.add(dataBean);
 //                                }
 //                            }
+                            }
+                        }
+                        if (dataList.size()==0){
+                            Message message = new Message();
+                            message.what = TAG_THERE;
+                            handler.sendMessage(message);
+                            return;
                         }
                     }
-                    if (dataList.size()==0){
-                        Message message = new Message();
-                        message.what = TAG_THERE;
-                        handler.sendMessage(message);
-                        return;
-                    }
-                }
-                if (startDate.equals("开始时间") && endDate.equals("结束时间")) {
-                    setLineCharData("off_direct_current_add");
-                } else {
-                    if (off_direct_current) {
+                    if (startDate.equals("开始时间") && endDate.equals("结束时间")) {
                         setLineCharData("off_direct_current_add");
-                    }
-                    if (off_direct_voltage) {
-                        setLineCharData("off_direct_voltage_add");
-                    }
-                    if (off_ac_current) {
-                        setLineCharData("off_ac_current_add");
-                    }
-                    if (off_ac_voltage) {
-                        setLineCharData("off_ac_voltage_add");
-                    }
-                    if (on_direct_current) {
-                        setLineCharData("on_direct_current_add");
-                    }
-                    if (on_direct_voltage) {
-                        setLineCharData("on_direct_voltage_add");
-                    }
-                    if (on_ac_current) {
-                        setLineCharData("on_ac_current_add");
-                    }
-                    if (on_ac_voltage) {
-                        setLineCharData("on_ac_voltage_add");
+                    } else {
+                        if (off_direct_current) {
+                            setLineCharData("off_direct_current_add");
+                        }
+                        if (off_direct_voltage) {
+                            setLineCharData("off_direct_voltage_add");
+                        }
+                        if (off_ac_current) {
+                            setLineCharData("off_ac_current_add");
+                        }
+                        if (off_ac_voltage) {
+                            setLineCharData("off_ac_voltage_add");
+                        }
+                        if (on_direct_current) {
+                            setLineCharData("on_direct_current_add");
+                        }
+                        if (on_direct_voltage) {
+                            setLineCharData("on_direct_voltage_add");
+                        }
+                        if (on_ac_current) {
+                            setLineCharData("on_ac_current_add");
+                        }
+                        if (on_ac_voltage) {
+                            setLineCharData("on_ac_voltage_add");
+                        }
                     }
                 }
-            }
 
-            @Override
-            public void fail() {
-                Message message = new Message();
-                message.what = TAG_ONE;
-                handler.sendMessage(message);
-            }
-        }).start();
+                @Override
+                public void fail() {
+                    Message message = new Message();
+                    message.what = TAG_ONE;
+                    handler.sendMessage(message);
+                }
+            }).start();
+        }else {
+            Toast.makeText(this, "未发现内存卡", Toast.LENGTH_SHORT).show();
+        }
+
+
     }
 
     //比较时间大小
@@ -488,7 +543,7 @@ public class MainActivity extends AppCompatActivity implements EasyPermissions.P
                 showDatePicker(tvEndTime, "end");
                 break;
             case R.id.tvDelect:
-                alertDialogUtil.showDelectDialog(this,new SaveImageCallBack() {
+                alertDialogUtil.showDelectDialog(s,this,new SaveImageCallBack() {
                     @Override
                     public void save(String name) {
                         entriesOffDirectCurrent.clear();
@@ -524,7 +579,7 @@ public class MainActivity extends AppCompatActivity implements EasyPermissions.P
                         }
 //                        filePath = path + "1111.xls";
                         ExcelUtil.initExcel(filePath, colName);
-                        ExcelUtil.writeObjListToExcel(dataList, filePath, MainActivity.this);
+                        ExcelUtil.writeObjListToExcel(s,dataList, filePath, MainActivity.this);
                     }
 
                     @Override
@@ -532,9 +587,6 @@ public class MainActivity extends AppCompatActivity implements EasyPermissions.P
 
                     }
                 });
-//                String filePath = path + "1111.xls";
-//                ExcelUtil.initExcel(filePath, colName);
-//                ExcelUtil.writeObjListToExcel(dataList, filePath, this);
                 break;
             case R.id.tvSaveImg:
                 linSelect.setVisibility(View.GONE);

@@ -100,7 +100,7 @@ public class ExcelUtil {
     }
 
     @SuppressWarnings("unchecked")
-    public static <T> void writeObjListToExcel(List<T> objList, String fileName, Context c) {
+    public static <T> void writeObjListToExcel(String s, List<T> objList, String fileName, Context c) {
         if (objList != null && objList.size() > 0) {
             WritableWorkbook writebook = null;
             InputStream in = null;
@@ -138,7 +138,6 @@ public class ExcelUtil {
                     //设置行高
                     sheet.setRowView(j + 1, 350);
                 }
-
                 writebook.write();
                 Toast.makeText(c, "导出Excel成功", Toast.LENGTH_SHORT).show();
             } catch (Exception e) {

@@ -62,7 +62,7 @@ public class AlertDialogUtil {
             dialog.getWindow().setContentView(view);
         }
     }
-    public void showDelectDialog(MainActivity mainActivity, final SaveImageCallBack alertDialogCallBack) {
+    public void showDelectDialog(String s, MainActivity mainActivity, final SaveImageCallBack alertDialogCallBack) {
         if (dialog == null || !dialog.isShowing()) {
             dialog = new Dialog(context);
             dialog.setCancelable(false);
@@ -80,7 +80,7 @@ public class AlertDialogUtil {
                     dialog.dismiss();
                     String path = Environment.getExternalStorageDirectory() + "/";
                     String name = "DATA.CSV";
-                    new ReadConstant().cleanData(path, name, mainActivity);
+                    new ReadConstant().cleanData(s, name, mainActivity);
                     alertDialogCallBack.save(editText.getText().toString());
                 }
             });

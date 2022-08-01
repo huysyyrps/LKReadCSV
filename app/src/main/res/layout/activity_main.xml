@@ -174,13 +174,6 @@
                         android:background="@color/color_bg_selected"
                         android:text="保存图片" />
 
-                    <TextView
-                        android:id="@+id/tvDelect"
-                        style="@style/RadionButton"
-                        android:layout_width="80dp"
-                        android:layout_height="25dp"
-                        android:background="@color/color_bg_selected"
-                        android:text="@string/delect" />
 
                     <TextView
                         android:id="@+id/tvSave"
@@ -189,6 +182,14 @@
                         android:layout_height="25dp"
                         android:background="@color/color_bg_selected"
                         android:text="@string/save_data" />
+                    <TextView
+                        android:id="@+id/tvDelect"
+                        android:visibility="invisible"
+                        style="@style/RadionButton"
+                        android:layout_width="80dp"
+                        android:layout_height="25dp"
+                        android:background="@color/color_bg_selected"
+                        android:text="@string/delect" />
 
                     <TextView
                         style="@style/RadionButton"

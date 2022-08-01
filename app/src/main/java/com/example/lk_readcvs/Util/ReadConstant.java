@@ -38,7 +38,7 @@ public class ReadConstant {
      * 清除数据
      */
     public void cleanData(String folder, String fileName, MainActivity mainActivity) {
-        File inFile = new File(folder + fileName);
+        File inFile = new File(folder , fileName);
         FileWriter fw = null;
         try {
             fw = new FileWriter(inFile);
