@@ -116,7 +116,6 @@ public class ExcelUtil {
                     DataBean dataBean = (DataBean) objList.get(j);
                     List<String> list = new ArrayList<>();
                     list.add(dataBean.getDate());
-                    list.add(dataBean.getTime());
                     list.add(dataBean.getOffDirectCurrent());
                     list.add(dataBean.getOffDirectVoltage());
                     list.add(dataBean.getOffACCurrent());

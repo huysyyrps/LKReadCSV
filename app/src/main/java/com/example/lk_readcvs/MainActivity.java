@@ -1,6 +1,7 @@
 package com.example.lk_readcvs;
 
 import static com.example.lk_readcvs.Util.Constant.TAG_ONE;
+import static com.example.lk_readcvs.Util.Constant.TAG_THERE;
 import static com.example.lk_readcvs.Util.Constant.TAG_TWO;
 
 import android.Manifest;
@@ -59,6 +60,7 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -141,9 +143,9 @@ public class MainActivity extends AppCompatActivity implements EasyPermissions.P
     private MediaProjectionManager mMediaProjectionManager;
     String path = Environment.getExternalStorageDirectory() + "/";
     List<DataBean> dataList = new ArrayList<>();
-    String[] colName = {"日期","时间","断电直流电流","断电直流电压","断电交流电流","断电交流电压","通电直流电流","通电直流电压","通电交流电流","通电交流电压"};
-    LineDataSet dataSetOffDirectCurrent,dataSetOffDirectVoltage,dataSetOffACCurrent,dataSetOffACVoltage,
-            dataSetOnDirectCurrent,dataSetOnDirectVoltage,dataSetOnACCurrent,dataSetOnACVoltage;
+    String[] colName = {"日期", "时间", "断电直流电流", "断电直流电压", "断电交流电流", "断电交流电压", "通电直流电流", "通电直流电压", "通电交流电流", "通电交流电压"};
+    LineDataSet dataSetOffDirectCurrent, dataSetOffDirectVoltage, dataSetOffACCurrent, dataSetOffACVoltage,
+            dataSetOnDirectCurrent, dataSetOnDirectVoltage, dataSetOnACCurrent, dataSetOnACVoltage;
 
     //AC交流  direct直流  current电流  voltage电压
 
@@ -173,7 +175,7 @@ public class MainActivity extends AppCompatActivity implements EasyPermissions.P
         //请求权限
         if (EasyPermissions.hasPermissions(this, PERMS)) {
             // 已经申请过权限，做想做的事
-            readCSVData(radionStartDate.getText().toString().trim(),"");
+            readCSVData(radionStartDate.getText().toString().trim(), tvEndTime.getText().toString().trim());
         } else {
             // 没有申请过权限，现在去申请
             EasyPermissions.requestPermissions(this, "PERMISSION_STORAGE_MSG", TAG_ONE, PERMS);
@@ -182,13 +184,13 @@ public class MainActivity extends AppCompatActivity implements EasyPermissions.P
 
 
     //读取数据
-    private void readCSVData(String date, String tag) {
+    private void readCSVData(String startDate, String endDate) {
         String path = Environment.getExternalStorageDirectory() + "/";
         String name = "DATA.CSV";
         new ReadCSVThread(path, name, new ReadCSVCallBack() {
             @Override
             public void success(List<String> sb) {
-                if (sb!=null){
+                if (sb != null) {
                     entriesOffDirectCurrent = new ArrayList<>();
                     entriesOffDirectVoltage = new ArrayList<>();
                     entriesOffACCurrent = new ArrayList<>();
@@ -203,64 +205,118 @@ public class MainActivity extends AppCompatActivity implements EasyPermissions.P
                         String itemData = sb.get(i);
                         String[] arrayData = itemData.split(",");
                         if (itemData != null && arrayData.length > 9) {
-                            if (date.equals("开始时间")){
-                                entriesOffDirectCurrent.add(new Entry(i, Float.valueOf(arrayData[2])));
-                                entriesOffDirectVoltage.add(new Entry(i, Float.valueOf(arrayData[3])));
-                                entriesOffACCurrent.add(new Entry(i, Float.valueOf(arrayData[4])));
-                                entriesOffACVoltage.add(new Entry(i, Float.valueOf(arrayData[5])));
-                                entriesOnDirectCurrent.add(new Entry(i, Float.valueOf(arrayData[6])));
-                                entriesOnDirectVoltage.add(new Entry(i, Float.valueOf(arrayData[7])));
-                                entriesOnACCurrent.add(new Entry(i, Float.valueOf(arrayData[8])));
-                                entriesOnACVoltage.add(new Entry(i, Float.valueOf(arrayData[9])));
-                                dataBean = new DataBean(arrayData[0],arrayData[1],arrayData[2]
-                                        ,arrayData[3],arrayData[4],arrayData[5],arrayData[6],arrayData[7],arrayData[8],arrayData[9]);
+                            if (startDate.equals("开始时间") && endDate.equals("结束时间")) {
+                                entriesOffDirectCurrent.add(new Entry(i, Float.valueOf(arrayData[1])));
+                                entriesOffDirectVoltage.add(new Entry(i, Float.valueOf(arrayData[2])));
+                                entriesOffACCurrent.add(new Entry(i, Float.valueOf(arrayData[3])));
+                                entriesOffACVoltage.add(new Entry(i, Float.valueOf(arrayData[4])));
+                                entriesOnDirectCurrent.add(new Entry(i, Float.valueOf(arrayData[5])));
+                                entriesOnDirectVoltage.add(new Entry(i, Float.valueOf(arrayData[6])));
+                                entriesOnACCurrent.add(new Entry(i, Float.valueOf(arrayData[7])));
+                                entriesOnACVoltage.add(new Entry(i, Float.valueOf(arrayData[8])));
+                                dataBean = new DataBean(arrayData[0], arrayData[1], arrayData[2]
+                                        , arrayData[3], arrayData[4], arrayData[5], arrayData[6], arrayData[7], arrayData[8]);
                                 dataList.add(dataBean);
-                            }else if (itemData.split(",")[0].equals(date.split(" ")[0])){
-                                String time = itemData.split(",")[1];
-                                String selectTime = time.split(":")[0]+":"+time.split(":")[1];
-                                Log.e("XXX",selectTime+"-------"+date.split(" ")[1]);
-                                if (selectTime.equals(date.split(" ")[1])){
-                                    entriesOffDirectCurrent.add(new Entry(i, Float.valueOf(arrayData[2])));
-                                    entriesOffDirectVoltage.add(new Entry(i, Float.valueOf(arrayData[3])));
-                                    entriesOffACCurrent.add(new Entry(i, Float.valueOf(arrayData[4])));
-                                    entriesOffACVoltage.add(new Entry(i, Float.valueOf(arrayData[5])));
-                                    entriesOnDirectCurrent.add(new Entry(i, Float.valueOf(arrayData[6])));
-                                    entriesOnDirectVoltage.add(new Entry(i, Float.valueOf(arrayData[7])));
-                                    entriesOnACCurrent.add(new Entry(i, Float.valueOf(arrayData[8])));
-                                    entriesOnACVoltage.add(new Entry(i, Float.valueOf(arrayData[9])));
-                                    dataBean = new DataBean(arrayData[0],arrayData[1],arrayData[2]
-                                            ,arrayData[3],arrayData[4],arrayData[5],arrayData[6],arrayData[7],arrayData[8],arrayData[9]);
+                            } else if (!startDate.equals("开始时间") && endDate.equals("结束时间")) {
+                                String vlaTime = arrayData[0];
+                                if (!compareDate(startDate, vlaTime)) {
+                                    entriesOffDirectCurrent.add(new Entry(i, Float.valueOf(arrayData[1])));
+                                    entriesOffDirectVoltage.add(new Entry(i, Float.valueOf(arrayData[2])));
+                                    entriesOffACCurrent.add(new Entry(i, Float.valueOf(arrayData[3])));
+                                    entriesOffACVoltage.add(new Entry(i, Float.valueOf(arrayData[4])));
+                                    entriesOnDirectCurrent.add(new Entry(i, Float.valueOf(arrayData[5])));
+                                    entriesOnDirectVoltage.add(new Entry(i, Float.valueOf(arrayData[6])));
+                                    entriesOnACCurrent.add(new Entry(i, Float.valueOf(arrayData[7])));
+                                    entriesOnACVoltage.add(new Entry(i, Float.valueOf(arrayData[8])));
+                                    dataBean = new DataBean(arrayData[0], arrayData[1], arrayData[2]
+                                            , arrayData[3], arrayData[4], arrayData[5], arrayData[6], arrayData[7], arrayData[8]);
                                     dataList.add(dataBean);
                                 }
+                            } else if (startDate.equals("开始时间") && !endDate.equals("结束时间")) {
+                                String vlaTime = arrayData[0];
+                                if (compareDate(endDate, vlaTime)) {
+                                    entriesOffDirectCurrent.add(new Entry(i, Float.valueOf(arrayData[1])));
+                                    entriesOffDirectVoltage.add(new Entry(i, Float.valueOf(arrayData[2])));
+                                    entriesOffACCurrent.add(new Entry(i, Float.valueOf(arrayData[3])));
+                                    entriesOffACVoltage.add(new Entry(i, Float.valueOf(arrayData[4])));
+                                    entriesOnDirectCurrent.add(new Entry(i, Float.valueOf(arrayData[5])));
+                                    entriesOnDirectVoltage.add(new Entry(i, Float.valueOf(arrayData[6])));
+                                    entriesOnACCurrent.add(new Entry(i, Float.valueOf(arrayData[7])));
+                                    entriesOnACVoltage.add(new Entry(i, Float.valueOf(arrayData[8])));
+                                    dataBean = new DataBean(arrayData[0], arrayData[1], arrayData[2]
+                                            , arrayData[3], arrayData[4], arrayData[5], arrayData[6], arrayData[7], arrayData[8]);
+                                    dataList.add(dataBean);
+                                }
+                            } else if (!startDate.equals("开始时间") && !endDate.equals("结束时间")) {
+                                String vlaTime = arrayData[0];
+                                if (!compareDate(startDate, vlaTime)) {
+                                    if (compareDate(endDate, vlaTime)) {
+                                        entriesOffDirectCurrent.add(new Entry(i, Float.valueOf(arrayData[1])));
+                                        entriesOffDirectVoltage.add(new Entry(i, Float.valueOf(arrayData[2])));
+                                        entriesOffACCurrent.add(new Entry(i, Float.valueOf(arrayData[3])));
+                                        entriesOffACVoltage.add(new Entry(i, Float.valueOf(arrayData[4])));
+                                        entriesOnDirectCurrent.add(new Entry(i, Float.valueOf(arrayData[5])));
+                                        entriesOnDirectVoltage.add(new Entry(i, Float.valueOf(arrayData[6])));
+                                        entriesOnACCurrent.add(new Entry(i, Float.valueOf(arrayData[7])));
+                                        entriesOnACVoltage.add(new Entry(i, Float.valueOf(arrayData[8])));
+                                        dataBean = new DataBean(arrayData[0], arrayData[1], arrayData[2]
+                                                , arrayData[3], arrayData[4], arrayData[5], arrayData[6], arrayData[7], arrayData[8]);
+                                        dataList.add(dataBean);
+                                    }
+                                }
                             }
+//                            else if (itemData.split(",")[0].equals(date.split(" ")[0])){
+//                                String time = itemData.split(",")[1];
+//                                String selectTime = time.split(":")[0]+":"+time.split(":")[1];
+//                                Log.e("XXX",selectTime+"-------"+date.split(" ")[1]);
+//                                if (selectTime.equals(date.split(" ")[1])){
+//                                    entriesOffDirectCurrent.add(new Entry(i, Float.valueOf(arrayData[2])));
+//                                    entriesOffDirectVoltage.add(new Entry(i, Float.valueOf(arrayData[3])));
+//                                    entriesOffACCurrent.add(new Entry(i, Float.valueOf(arrayData[4])));
+//                                    entriesOffACVoltage.add(new Entry(i, Float.valueOf(arrayData[5])));
+//                                    entriesOnDirectCurrent.add(new Entry(i, Float.valueOf(arrayData[6])));
+//                                    entriesOnDirectVoltage.add(new Entry(i, Float.valueOf(arrayData[7])));
+//                                    entriesOnACCurrent.add(new Entry(i, Float.valueOf(arrayData[8])));
+//                                    entriesOnACVoltage.add(new Entry(i, Float.valueOf(arrayData[9])));
+//                                    dataBean = new DataBean(arrayData[0],arrayData[1],arrayData[2]
+//                                            ,arrayData[3],arrayData[4],arrayData[5],arrayData[6],arrayData[7],arrayData[8],arrayData[9]);
+//                                    dataList.add(dataBean);
+//                                }
+//                            }
                         }
                     }
+                    if (dataList.size()==0){
+                        Message message = new Message();
+                        message.what = TAG_THERE;
+                        handler.sendMessage(message);
+                        return;
+                    }
                 }
-                if (date.equals("日期")){
+                if (startDate.equals("开始时间") && endDate.equals("结束时间")) {
                     setLineCharData("off_direct_current_add");
-                }else {
-                    if (off_direct_current){
+                } else {
+                    if (off_direct_current) {
                         setLineCharData("off_direct_current_add");
                     }
-                    if (off_direct_voltage){
+                    if (off_direct_voltage) {
                         setLineCharData("off_direct_voltage_add");
                     }
-                    if (off_ac_current){
+                    if (off_ac_current) {
                         setLineCharData("off_ac_current_add");
                     }
-                    if (off_ac_voltage){
+                    if (off_ac_voltage) {
                         setLineCharData("off_ac_voltage_add");
                     }
-                    if (on_direct_current){
+                    if (on_direct_current) {
                         setLineCharData("on_direct_current_add");
                     }
-                    if (on_direct_voltage){
+                    if (on_direct_voltage) {
                         setLineCharData("on_direct_voltage_add");
                     }
-                    if (on_ac_current){
+                    if (on_ac_current) {
                         setLineCharData("on_ac_current_add");
                     }
-                    if (on_ac_voltage){
+                    if (on_ac_voltage) {
                         setLineCharData("on_ac_voltage_add");
                     }
                 }
@@ -275,12 +331,36 @@ public class MainActivity extends AppCompatActivity implements EasyPermissions.P
         }).start();
     }
 
+    //比较时间大小
+    public boolean compareDate(String selectDate, String compareDate) {
+        DateFormat df = new SimpleDateFormat("yyyy/M/d H:m");
+        try {
+            Date select = df.parse(selectDate);
+            Date compare = df.parse(compareDate);
+            if (select.getTime()>=compare.getTime()){
+                return true;
+            }else if (select.getTime()<compare.getTime()){
+                return false;
+            }
+//            if (select.after(compare)) {
+//                return true;
+//            } else {
+//                return false;
+//            }
+        } catch (ParseException e) {
+            e.printStackTrace();
+            return false;
+        }
+        return false;
+    }
+
     /**
      * 设置linecharData
+     *
      * @param item
      */
     private void setLineCharData(String item) {
-        switch (item){
+        switch (item) {
             case "off_direct_current_add":
                 dataSetOffDirectCurrent = new LineDataSet(entriesOffDirectCurrent, getString(R.string.off_direct_current));
                 dataSetOffDirectCurrent.setMode(LineDataSet.Mode.CUBIC_BEZIER);
@@ -376,7 +456,7 @@ public class MainActivity extends AppCompatActivity implements EasyPermissions.P
     @Override
     public void onPermissionsGranted(int requestCode, List<String> list) {
         // 已经申请过权限，做想做的事
-        readCSVData(radionStartDate.getText().toString().trim());
+        readCSVData(radionStartDate.getText().toString().trim(), tvEndTime.getText().toString().trim());
     }
 
     @Override
@@ -389,7 +469,8 @@ public class MainActivity extends AppCompatActivity implements EasyPermissions.P
     @SuppressLint("ResourceAsColor")
     @OnClick({R.id.radionStartDate, R.id.tvSaveImg, R.id.tvOnDirectCurrent, R.id.tvOffDirectCurrent,
             R.id.tvOnACCurrent, R.id.tvOffACCurrent, R.id.tvOnDirectVoltage, R.id.tvOffDirectVoltage,
-            R.id.tvOnACVoltage, R.id.tvOffACVoltage,R.id.linSetting,R.id.tvDelect,R.id.tvSave,R.id.icBack})
+            R.id.tvOnACVoltage, R.id.tvOffACVoltage, R.id.linSetting, R.id.tvDelect, R.id.tvSave
+            , R.id.icBack, R.id.tvEndTime})
     public void onClick(View view) {
         switch (view.getId()) {
             case R.id.linSetting:
@@ -401,21 +482,44 @@ public class MainActivity extends AppCompatActivity implements EasyPermissions.P
                 linSetting.setVisibility(View.VISIBLE);
                 break;
             case R.id.radionStartDate:
-                showDatePicker(radionStartDate,"start");
+                showDatePicker(radionStartDate, "start");
+                break;
+            case R.id.tvEndTime:
+                showDatePicker(tvEndTime, "end");
                 break;
             case R.id.tvDelect:
-                path = Environment.getExternalStorageDirectory() + "/";
-                String name = "DATA.CSV";
-                new ReadConstant().cleanData(path,name,this);
+                alertDialogUtil.showDelectDialog(this,new SaveImageCallBack() {
+                    @Override
+                    public void save(String name) {
+                        entriesOffDirectCurrent.clear();
+                        entriesOffDirectVoltage.clear();
+                        entriesOffACCurrent.clear();
+                        entriesOffACVoltage.clear();
+                        entriesOnDirectCurrent.clear();
+                        entriesOnDirectVoltage.clear();
+                        entriesOnACCurrent.clear();
+                        entriesOnACVoltage.clear();
+                        lineChart.notifyDataSetChanged();
+                        //刷新
+                        lineChart.getViewPortHandler().refresh(new Matrix(), lineChart, true);
+                        Toast.makeText(MainActivity.this, "数据清除成功", Toast.LENGTH_SHORT).show();
+                    }
+
+                    @Override
+                    public void cancle() {
+
+                    }
+                });
+
                 break;
             case R.id.tvSave:
                 alertDialogUtil.showImageDialog(new SaveImageCallBack() {
                     @Override
                     public void save(String name) {
                         String filePath;
-                        if (name.equals("")){
+                        if (name.equals("")) {
                             filePath = path + getNowDate();
-                        }else {
+                        } else {
                             filePath = path + name + ".xls";
                         }
 //                        filePath = path + "1111.xls";
@@ -444,7 +548,7 @@ public class MainActivity extends AppCompatActivity implements EasyPermissions.P
                             startCapture();
                         }
                     }, 200);
-                }else {
+                } else {
                     requestMediaProjection();
                 }
                 break;
@@ -644,14 +748,34 @@ public class MainActivity extends AppCompatActivity implements EasyPermissions.P
             mVirtualDisplay = null;
         }
     }
+
     //根据时间选择
-    public void showDatePicker(TextView textView, String start) {
+    public void showDatePicker(TextView textView, String tag) {
         datePicker = new TimePickerView.Builder(this, new TimePickerView.OnTimeSelectListener() {
             @Override
             public void onTimeSelect(Date date, View v) {
-                SimpleDateFormat format = new SimpleDateFormat("yyyy年M月d日 H:m");
-                Log.e("XXX",format.format(date));
-                textView.setText(format.format(date));
+                SimpleDateFormat format = new SimpleDateFormat("yyyy/M/d H:m");
+                Log.e("XXX", format.format(date));
+                if (tag.equals("start")) {
+                    if (tvEndTime.getText().toString().trim().equals("结束时间")) {
+                        radionStartDate.setText(format.format(date));
+                    } else if (!compareDate(format.format(date), tvEndTime.getText().toString().trim())) {
+                        radionStartDate.setText(format.format(date));
+                    } else {
+                        Toast.makeText(MainActivity.this, "请选择正确时间", Toast.LENGTH_SHORT).show();
+                        return;
+                    }
+
+                } else if (tag.equals("end")) {
+                    if (radionStartDate.getText().toString().trim().equals("开始时间")) {
+                        tvEndTime.setText(format.format(date));
+                    } else if (!compareDate(radionStartDate.getText().toString().trim(), format.format(date))) {
+                        tvEndTime.setText(format.format(date));
+                    } else {
+                        Toast.makeText(MainActivity.this, "请选择正确时间", Toast.LENGTH_SHORT).show();
+                        return;
+                    }
+                }
                 lineData.removeDataSet(dataSetOffDirectCurrent);
                 lineData.removeDataSet(dataSetOffDirectVoltage);
                 lineData.removeDataSet(dataSetOffACCurrent);
@@ -662,23 +786,34 @@ public class MainActivity extends AppCompatActivity implements EasyPermissions.P
                 lineData.removeDataSet(dataSetOnACVoltage);
                 lineChart.notifyDataSetChanged();
                 lineChart.getViewPortHandler().refresh(new Matrix(), lineChart, true);
-                readCSVData(format.format(date),start);
+                if (tag.equals("start")) {
+                    readCSVData(format.format(date), tvEndTime.getText().toString().trim());
+                } else if (tag.equals("end")) {
+                    readCSVData(radionStartDate.getText().toString().trim(), format.format(date));
+                }
+
             }
-        }).setSubmitText("确定")
+        }).
+
+                setSubmitText("确定")
                 .setCancelText("取消")
                 .setCancelColor(Color.BLACK)
                 .setSubmitColor(Color.BLACK)
                 .setSubCalSize(16)
                 //.isDialog(true) //是否对话框样式显示（显示在页面中间）
                 //.isCyclic(true) //是否循环滚动
-                .setType(new boolean[]{true, true, true, true, true, false}) //显示“年月日时分秒”的哪几项
+                .setType(new boolean[]{
+                        true, true, true, true, true, false
+                }) //显示“年月日时分秒”的哪几项
                 .isCenterLabel(false) //是否只显示选中的label文字，false则每项item全部都带有 label
                 .build();
+
         //设置显示的日期
         Calendar calendar = Calendar.getInstance();
         try {
-            calendar.setTime(new SimpleDateFormat("yyyy年M月d日 H:m").parse(new SimpleDateFormat("yyyy年M月d日 H:m").format(new Date(System.currentTimeMillis()))));
-        } catch (ParseException e) {
+            calendar.setTime(new SimpleDateFormat("yyyy/M/d H:m").parse(new SimpleDateFormat("yyyy/M/d H:m").format(new Date(System.currentTimeMillis()))));
+        } catch (
+                ParseException e) {
             //e.printStackTrace();
         }
         //这里需要注意的是月份是从0开始的，要显示10月份这里的参数应该是9
@@ -700,6 +835,9 @@ public class MainActivity extends AppCompatActivity implements EasyPermissions.P
             switch (msg.what) {
                 case TAG_ONE:
                     Toast.makeText(MainActivity.this, "读取失败，请检查文件是否存在", Toast.LENGTH_SHORT).show();
+                    break;
+                case TAG_THERE:
+                    Toast.makeText(MainActivity.this, getResources().getString(R.string.no_data), Toast.LENGTH_SHORT).show();
                     break;
             }
         }

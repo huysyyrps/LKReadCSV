@@ -22,4 +22,6 @@
 
     <string name="delect_success">清除成功</string>
     <string name="delect_faile">清除失败</string>
+
+    <string name="no_data">暂无数据</string>
 </resources>

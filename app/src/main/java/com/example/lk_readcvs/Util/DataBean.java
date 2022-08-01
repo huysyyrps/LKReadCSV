@@ -2,7 +2,6 @@ package com.example.lk_readcvs.Util;
 
 public class DataBean {
     public String date;
-    public String time;
     public String offDirectCurrent;
     public String offDirectVoltage;
     public String offACCurrent;
@@ -12,11 +11,10 @@ public class DataBean {
     public String onACCurrent;
     public String onACVoltage;
 
-    public DataBean(String date, String time, String offDirectCurrent, String offDirectVoltage,
+    public DataBean(String date, String offDirectCurrent, String offDirectVoltage,
                     String offACCurrent, String offACVoltage, String onDirectCurrent,
                     String onDirectVoltage, String onACCurrent, String onACVoltage) {
         this.date = date;
-        this.time = time;
         this.offDirectCurrent = offDirectCurrent;
         this.offDirectVoltage = offDirectVoltage;
         this.offACCurrent = offACCurrent;
@@ -33,14 +31,6 @@ public class DataBean {
 
     public void setDate(String date) {
         this.date = date;
-    }
-
-    public String getTime() {
-        return time;
-    }
-
-    public void setTime(String time) {
-        this.time = time;
     }
 
     public String getOffDirectCurrent() {
