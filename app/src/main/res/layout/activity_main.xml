@@ -47,8 +47,7 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="10dp"
             android:layout_marginRight="10dp"
-            android:orientation="horizontal"
-            android:visibility="gone">
+            android:orientation="horizontal">
 
             <ImageView
                 android:id="@+id/icBack"
@@ -160,10 +159,12 @@
                         android:text="@string/on_ac_voltage" />
 
                 </LinearLayout>
+
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="0dp"
                     android:layout_weight="1"
+                    android:layout_marginBottom="10dp"
                     android:orientation="horizontal">
 
                     <TextView
@@ -174,6 +175,45 @@
                         android:background="@color/color_bg_selected"
                         android:text="保存图片" />
 
+
+                    <TextView
+                        android:id="@+id/tvOnPXGDirectTD"
+                        style="@style/RadionButton"
+                        android:layout_width="80dp"
+                        android:layout_height="25dp"
+                        android:background="@color/color_bg_selected"
+                        android:text="@string/pxg_direct_voltage" />
+                    <TextView
+                        android:id="@+id/tvOnCZDirectTD"
+                        style="@style/RadionButton"
+                        android:layout_width="80dp"
+                        android:layout_height="25dp"
+                        android:background="@color/color_bg_selected"
+                        android:text="@string/cz_direct_voltage" />
+
+                    <TextView
+                        android:id="@+id/tvOnPXGACTD"
+                        style="@style/RadionButton"
+                        android:layout_width="80dp"
+                        android:layout_height="25dp"
+                        android:background="@color/color_bg_selected"
+                        android:text="@string/pxg_ac_voltage" />
+
+                    <TextView
+                        android:id="@+id/tvOnCZACTD"
+                        style="@style/RadionButton"
+                        android:layout_width="80dp"
+                        android:layout_height="25dp"
+                        android:background="@color/color_bg_selected"
+                        android:text="@string/cz_ac_voltage" />
+
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="0dp"
+                    android:layout_weight="1"
+                    android:orientation="horizontal">
 
                     <TextView
                         android:id="@+id/tvSave"
@@ -199,6 +239,13 @@
                         android:background="@color/color_bg_selected"
                         android:text="@string/on_ac_voltage" />
 
+                    <TextView
+                        style="@style/RadionButton"
+                        android:visibility="invisible"
+                        android:layout_width="80dp"
+                        android:layout_height="25dp"
+                        android:background="@color/color_bg_selected"
+                        android:text="@string/save_data" />
                     <TextView
                         style="@style/RadionButton"
                         android:visibility="invisible"

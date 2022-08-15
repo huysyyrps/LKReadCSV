@@ -2,7 +2,6 @@ package com.example.lk_readcvs;
 
 import static com.example.lk_readcvs.Util.Constant.TAG_ONE;
 import static com.example.lk_readcvs.Util.Constant.TAG_THERE;
-import static com.example.lk_readcvs.Util.Constant.TAG_TWO;
 
 import android.Manifest;
 import android.annotation.SuppressLint;
@@ -18,15 +17,11 @@ import android.media.Image;
 import android.media.ImageReader;
 import android.media.projection.MediaProjection;
 import android.media.projection.MediaProjectionManager;
-import android.net.Uri;
-import android.nfc.Tag;
-import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
 import android.os.Handler;
 import android.os.Message;
 import android.os.storage.StorageManager;
-import android.os.storage.StorageVolume;
 import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.View;
@@ -38,7 +33,6 @@ import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.documentfile.provider.DocumentFile;
 
 import com.bigkoo.pickerview.TimePickerView;
 import com.example.lk_readcvs.Util.AlertDialogUtil;
@@ -46,19 +40,16 @@ import com.example.lk_readcvs.Util.Constant;
 import com.example.lk_readcvs.Util.DataBean;
 import com.example.lk_readcvs.Util.ExcelUtil;
 import com.example.lk_readcvs.Util.ImageSave;
+import com.example.lk_readcvs.Util.MyValueFormatter;
 import com.example.lk_readcvs.Util.ReadCSVCallBack;
 import com.example.lk_readcvs.Util.ReadCSVThread;
 import com.example.lk_readcvs.Util.ReadConstant;
 import com.example.lk_readcvs.Util.SaveImageCallBack;
-import com.example.lk_readcvs.Util.SelectDateTime;
 import com.example.lk_readcvs.View.BottomUI;
 import com.github.mikephil.charting.charts.LineChart;
-import com.github.mikephil.charting.components.XAxis;
 import com.github.mikephil.charting.data.Entry;
 import com.github.mikephil.charting.data.LineData;
 import com.github.mikephil.charting.data.LineDataSet;
-import com.github.mikephil.charting.highlight.Highlight;
-import com.github.mikephil.charting.listener.OnChartValueSelectedListener;
 
 import java.io.File;
 import java.io.FileWriter;
@@ -118,6 +109,14 @@ public class MainActivity extends AppCompatActivity implements EasyPermissions.P
     TextView tvSave;
     @BindView(R.id.icBack)
     ImageView icBack;
+    @BindView(R.id.tvOnPXGDirectTD)
+    TextView tvOnPXGDirectTD;
+    @BindView(R.id.tvOnCZDirectTD)
+    TextView tvOnCZDirectTD;
+    @BindView(R.id.tvOnPXGACTD)
+    TextView tvOnPXGACTD;
+    @BindView(R.id.tvOnCZACTD)
+    TextView tvOnCZACTD;
 
     List<Entry> entriesOffDirectCurrent = new ArrayList<>();
     List<Entry> entriesOffDirectVoltage = new ArrayList<>();
@@ -127,6 +126,10 @@ public class MainActivity extends AppCompatActivity implements EasyPermissions.P
     List<Entry> entriesOnDirectVoltage = new ArrayList<>();
     List<Entry> entriesOnACCurrent = new ArrayList<>();
     List<Entry> entriesOnACVoltage = new ArrayList<>();
+    List<Entry> entriesOnPXGDirectTD = new ArrayList<>();
+    List<Entry> entriesOnCZDirectTD = new ArrayList<>();
+    List<Entry> entriesOnPXGACTD = new ArrayList<>();
+    List<Entry> entriesOnCZACTD = new ArrayList<>();
     //,Manifest.permission.MOUNT_UNMOUNT_FILESYSTEMS
     String[] PERMS = {Manifest.permission.READ_EXTERNAL_STORAGE, Manifest.permission.WRITE_EXTERNAL_STORAGE};
     boolean on_direct_current = false;
@@ -137,6 +140,11 @@ public class MainActivity extends AppCompatActivity implements EasyPermissions.P
     boolean off_direct_voltage = false;
     boolean on_ac_voltage = false;
     boolean off_ac_voltage = false;
+
+    boolean pxg_direct_td = false;
+    boolean cz_direct_td = false;
+    boolean pxg_ac_td = false;
+    boolean cz_ac_td = false;
     private TimePickerView datePicker;
     private int mWindowWidth;
     private int mWindowHeight;
@@ -151,10 +159,15 @@ public class MainActivity extends AppCompatActivity implements EasyPermissions.P
     private MediaProjectionManager mMediaProjectionManager;
     String path = Environment.getExternalStorageDirectory() + "/";
     List<DataBean> dataList = new ArrayList<>();
-    String[] colName = {"日期", "时间", "断电直流电流", "断电直流电压", "断电交流电流", "断电交流电压", "通电直流电流", "通电直流电压", "通电交流电流", "通电交流电压"};
+    String[] colName = {"日期",
+            "断电直流电流", "断电直流电压", "断电交流电流", "断电交流电压",
+            "通电直流电流", "通电直流电压", "通电交流电流", "通电交流电压",
+            "平行管道直流电位梯度", "垂直管道直流电位梯度", "平行管道交流电位梯度", "垂直管道交流电位梯度"};
     LineDataSet dataSetOffDirectCurrent, dataSetOffDirectVoltage, dataSetOffACCurrent, dataSetOffACVoltage,
-            dataSetOnDirectCurrent, dataSetOnDirectVoltage, dataSetOnACCurrent, dataSetOnACVoltage;
+            dataSetOnDirectCurrent, dataSetOnDirectVoltage, dataSetOnACCurrent, dataSetOnACVoltage,
+            dataSetOnPXGDirectTD, dataSetOnCZDirectTD, dataSetOnPXGACTD, dataSetOnCZACTD;
     String s;
+    DataBean dataBean;
     //AC交流  direct直流  current电流  voltage电压
 
     @Override
@@ -178,6 +191,8 @@ public class MainActivity extends AppCompatActivity implements EasyPermissions.P
         mScreenDensity = displayMetrics.densityDpi;
         mImageReader = ImageReader.newInstance(mWindowWidth, mWindowHeight, 0x1, 2);
 
+        lineData.setValueFormatter(new MyValueFormatter());
+
         //设置样式
         new ReadConstant().setLineChar(lineChart);
         //请求权限
@@ -187,6 +202,27 @@ public class MainActivity extends AppCompatActivity implements EasyPermissions.P
         } else {
             // 没有申请过权限，现在去申请
             EasyPermissions.requestPermissions(this, "PERMISSION_STORAGE_MSG", TAG_ONE, PERMS);
+        }
+
+        if (Environment.getExternalStorageState().equals(Environment.MEDIA_MOUNTED)) {
+            Log.e("XXXXX", "Sdcard可用");
+            File file = new File(getStoragePath(this, true), "MySdcard.txt");
+            if (!file.exists()) {
+                try {
+                    file.createNewFile();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+            try {
+                FileWriter fileWriter = new FileWriter(file);
+                fileWriter.write("饭撒发生的噶地方舒服舒服撒冯绍峰撒");
+                fileWriter.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        } else {
+            Log.e("XXXXX", "Sdcard不可用");
         }
     }
 
@@ -224,7 +260,7 @@ public class MainActivity extends AppCompatActivity implements EasyPermissions.P
     //读取数据
     private void readCSVData(String startDate, String endDate) {
         // 判断手机上是否插入了SD卡
-        if (Environment.getExternalStorageState().equals(Environment.MEDIA_MOUNTED)){
+        if (Environment.getExternalStorageState().equals(Environment.MEDIA_MOUNTED)) {
             // 获取SD卡的目录
 //            File  dir = Environment.getExternalStorageDirectory();
 //            String path = null;
@@ -235,7 +271,7 @@ public class MainActivity extends AppCompatActivity implements EasyPermissions.P
 //            }
 //            File sdCardDir = Environment.getExternalStorageDirectory();
             //filename = Environment.getExternalStorageDirectory().getCanonicalPath() + "/" + filename;
-            s = getStoragePath(this,true);
+            s = getStoragePath(this, true);
             String name = "DATA.CSV";
             new ReadCSVThread(s, name, new ReadCSVCallBack() {
                 @Override
@@ -249,93 +285,40 @@ public class MainActivity extends AppCompatActivity implements EasyPermissions.P
                         entriesOnDirectVoltage = new ArrayList<>();
                         entriesOnACCurrent = new ArrayList<>();
                         entriesOnACVoltage = new ArrayList<>();
+                        entriesOnPXGDirectTD = new ArrayList<>();
+                        entriesOnCZDirectTD = new ArrayList<>();
+                        entriesOnPXGACTD = new ArrayList<>();
+                        entriesOnCZACTD = new ArrayList<>();
+
                         dataList = new ArrayList<>();
                         for (int i = 0; i < sb.size(); i++) {
-                            DataBean dataBean;
                             String itemData = sb.get(i);
+//                            itemData = itemData.replace(" ", "");
                             String[] arrayData = itemData.split(",");
                             if (itemData != null && arrayData.length > 9) {
                                 if (startDate.equals("开始时间") && endDate.equals("结束时间")) {
-                                    entriesOffDirectCurrent.add(new Entry(i, Float.valueOf(arrayData[1])));
-                                    entriesOffDirectVoltage.add(new Entry(i, Float.valueOf(arrayData[2])));
-                                    entriesOffACCurrent.add(new Entry(i, Float.valueOf(arrayData[3])));
-                                    entriesOffACVoltage.add(new Entry(i, Float.valueOf(arrayData[4])));
-                                    entriesOnDirectCurrent.add(new Entry(i, Float.valueOf(arrayData[5])));
-                                    entriesOnDirectVoltage.add(new Entry(i, Float.valueOf(arrayData[6])));
-                                    entriesOnACCurrent.add(new Entry(i, Float.valueOf(arrayData[7])));
-                                    entriesOnACVoltage.add(new Entry(i, Float.valueOf(arrayData[8])));
-                                    dataBean = new DataBean(arrayData[0], arrayData[1], arrayData[2]
-                                            , arrayData[3], arrayData[4], arrayData[5], arrayData[6], arrayData[7], arrayData[8]);
-                                    dataList.add(dataBean);
+                                    setList(i, arrayData);
                                 } else if (!startDate.equals("开始时间") && endDate.equals("结束时间")) {
                                     String vlaTime = arrayData[0];
                                     if (!compareDate(startDate, vlaTime)) {
-                                        entriesOffDirectCurrent.add(new Entry(i, Float.valueOf(arrayData[1])));
-                                        entriesOffDirectVoltage.add(new Entry(i, Float.valueOf(arrayData[2])));
-                                        entriesOffACCurrent.add(new Entry(i, Float.valueOf(arrayData[3])));
-                                        entriesOffACVoltage.add(new Entry(i, Float.valueOf(arrayData[4])));
-                                        entriesOnDirectCurrent.add(new Entry(i, Float.valueOf(arrayData[5])));
-                                        entriesOnDirectVoltage.add(new Entry(i, Float.valueOf(arrayData[6])));
-                                        entriesOnACCurrent.add(new Entry(i, Float.valueOf(arrayData[7])));
-                                        entriesOnACVoltage.add(new Entry(i, Float.valueOf(arrayData[8])));
-                                        dataBean = new DataBean(arrayData[0], arrayData[1], arrayData[2]
-                                                , arrayData[3], arrayData[4], arrayData[5], arrayData[6], arrayData[7], arrayData[8]);
-                                        dataList.add(dataBean);
+                                        setList(i, arrayData);
                                     }
                                 } else if (startDate.equals("开始时间") && !endDate.equals("结束时间")) {
                                     String vlaTime = arrayData[0];
                                     if (compareDate(endDate, vlaTime)) {
-                                        entriesOffDirectCurrent.add(new Entry(i, Float.valueOf(arrayData[1])));
-                                        entriesOffDirectVoltage.add(new Entry(i, Float.valueOf(arrayData[2])));
-                                        entriesOffACCurrent.add(new Entry(i, Float.valueOf(arrayData[3])));
-                                        entriesOffACVoltage.add(new Entry(i, Float.valueOf(arrayData[4])));
-                                        entriesOnDirectCurrent.add(new Entry(i, Float.valueOf(arrayData[5])));
-                                        entriesOnDirectVoltage.add(new Entry(i, Float.valueOf(arrayData[6])));
-                                        entriesOnACCurrent.add(new Entry(i, Float.valueOf(arrayData[7])));
-                                        entriesOnACVoltage.add(new Entry(i, Float.valueOf(arrayData[8])));
-                                        dataBean = new DataBean(arrayData[0], arrayData[1], arrayData[2]
-                                                , arrayData[3], arrayData[4], arrayData[5], arrayData[6], arrayData[7], arrayData[8]);
-                                        dataList.add(dataBean);
+                                        setList(i, arrayData);
                                     }
                                 } else if (!startDate.equals("开始时间") && !endDate.equals("结束时间")) {
                                     String vlaTime = arrayData[0];
                                     if (!compareDate(startDate, vlaTime)) {
                                         if (compareDate(endDate, vlaTime)) {
-                                            entriesOffDirectCurrent.add(new Entry(i, Float.valueOf(arrayData[1])));
-                                            entriesOffDirectVoltage.add(new Entry(i, Float.valueOf(arrayData[2])));
-                                            entriesOffACCurrent.add(new Entry(i, Float.valueOf(arrayData[3])));
-                                            entriesOffACVoltage.add(new Entry(i, Float.valueOf(arrayData[4])));
-                                            entriesOnDirectCurrent.add(new Entry(i, Float.valueOf(arrayData[5])));
-                                            entriesOnDirectVoltage.add(new Entry(i, Float.valueOf(arrayData[6])));
-                                            entriesOnACCurrent.add(new Entry(i, Float.valueOf(arrayData[7])));
-                                            entriesOnACVoltage.add(new Entry(i, Float.valueOf(arrayData[8])));
-                                            dataBean = new DataBean(arrayData[0], arrayData[1], arrayData[2]
-                                                    , arrayData[3], arrayData[4], arrayData[5], arrayData[6], arrayData[7], arrayData[8]);
-                                            dataList.add(dataBean);
+                                            setList(i, arrayData);
                                         }
                                     }
                                 }
-//                            else if (itemData.split(",")[0].equals(date.split(" ")[0])){
-//                                String time = itemData.split(",")[1];
-//                                String selectTime = time.split(":")[0]+":"+time.split(":")[1];
-//                                Log.e("XXX",selectTime+"-------"+date.split(" ")[1]);
-//                                if (selectTime.equals(date.split(" ")[1])){
-//                                    entriesOffDirectCurrent.add(new Entry(i, Float.valueOf(arrayData[2])));
-//                                    entriesOffDirectVoltage.add(new Entry(i, Float.valueOf(arrayData[3])));
-//                                    entriesOffACCurrent.add(new Entry(i, Float.valueOf(arrayData[4])));
-//                                    entriesOffACVoltage.add(new Entry(i, Float.valueOf(arrayData[5])));
-//                                    entriesOnDirectCurrent.add(new Entry(i, Float.valueOf(arrayData[6])));
-//                                    entriesOnDirectVoltage.add(new Entry(i, Float.valueOf(arrayData[7])));
-//                                    entriesOnACCurrent.add(new Entry(i, Float.valueOf(arrayData[8])));
-//                                    entriesOnACVoltage.add(new Entry(i, Float.valueOf(arrayData[9])));
-//                                    dataBean = new DataBean(arrayData[0],arrayData[1],arrayData[2]
-//                                            ,arrayData[3],arrayData[4],arrayData[5],arrayData[6],arrayData[7],arrayData[8],arrayData[9]);
-//                                    dataList.add(dataBean);
-//                                }
-//                            }
                             }
                         }
-                        if (dataList.size()==0){
+                        if (dataList.size() == 0) {
                             Message message = new Message();
                             message.what = TAG_THERE;
                             handler.sendMessage(message);
@@ -369,6 +352,18 @@ public class MainActivity extends AppCompatActivity implements EasyPermissions.P
                         if (on_ac_voltage) {
                             setLineCharData("on_ac_voltage_add");
                         }
+                        if (pxg_direct_td) {
+                            setLineCharData("on_pxg_direct_td_add");
+                        }
+                        if (cz_direct_td) {
+                            setLineCharData("on_cz_direct_td_add");
+                        }
+                        if (pxg_ac_td) {
+                            setLineCharData("on_pxg_ac_td_add");
+                        }
+                        if (cz_ac_td) {
+                            setLineCharData("on_cz_ac_td_add");
+                        }
                     }
                 }
 
@@ -379,11 +374,100 @@ public class MainActivity extends AppCompatActivity implements EasyPermissions.P
                     handler.sendMessage(message);
                 }
             }).start();
-        }else {
+        } else {
             Toast.makeText(this, "未发现内存卡", Toast.LENGTH_SHORT).show();
         }
+    }
 
+    public void setList(int i, String[] arrayData) {
+        try {
+            Float fOffDirectCurrent = Float.valueOf(arrayData[1]);
+            entriesOffDirectCurrent.add(new Entry(i, fOffDirectCurrent));
+        } catch (Exception e) {
+            entriesOffDirectCurrent.add(new Entry(i, 0));
+        }
 
+        try {
+            Float fOffDirectVoltage = Float.valueOf(arrayData[2]);
+            entriesOffDirectVoltage.add(new Entry(i, fOffDirectVoltage));
+        } catch (Exception e) {
+            entriesOffDirectVoltage.add(new Entry(i, 0));
+        }
+
+        try {
+            Float fOffACCurrent = Float.valueOf(arrayData[3]);
+            entriesOffACCurrent.add(new Entry(i, fOffACCurrent));
+        } catch (Exception e) {
+            entriesOffACCurrent.add(new Entry(i, 0));
+        }
+
+        try {
+            Float fOffACVoltage = Float.valueOf(arrayData[4]);
+            entriesOffACVoltage.add(new Entry(i, fOffACVoltage));
+        } catch (Exception e) {
+            entriesOffACVoltage.add(new Entry(i, 0));
+        }
+
+        try {
+            Float fOnDirectCurrent = Float.valueOf(arrayData[5]);
+            entriesOnDirectCurrent.add(new Entry(i, fOnDirectCurrent));
+        } catch (Exception e) {
+            entriesOnDirectCurrent.add(new Entry(i, 0));
+        }
+
+        try {
+            Float fOnDirectVoltage = Float.valueOf(arrayData[6]);
+            entriesOnDirectVoltage.add(new Entry(i, fOnDirectVoltage));
+        } catch (Exception e) {
+            entriesOnDirectVoltage.add(new Entry(i, 0));
+        }
+
+        try {
+            Float fOnACCurrent = Float.valueOf(arrayData[7]);
+            entriesOnACCurrent.add(new Entry(i, fOnACCurrent));
+        } catch (Exception e) {
+            entriesOnACCurrent.add(new Entry(i, 0));
+        }
+
+        try {
+            Float fOnACVoltage = Float.valueOf(arrayData[8]);
+            entriesOnACVoltage.add(new Entry(i, fOnACVoltage));
+        } catch (Exception e) {
+            entriesOnACVoltage.add(new Entry(i, 0));
+        }
+
+        try {
+            Float fOnPXGDirectTD = Float.valueOf(arrayData[9]);
+            entriesOnPXGDirectTD.add(new Entry(i, fOnPXGDirectTD));
+        } catch (Exception e) {
+            entriesOnPXGDirectTD.add(new Entry(i, 0));
+        }
+
+        try {
+            Float fOnCZDirectTD = Float.valueOf(arrayData[10]);
+            entriesOnCZDirectTD.add(new Entry(i, fOnCZDirectTD));
+        } catch (Exception e) {
+            entriesOnCZDirectTD.add(new Entry(i, 0));
+        }
+
+        try {
+            Float fOnPXGACTD = Float.valueOf(arrayData[11]);
+            entriesOnPXGACTD.add(new Entry(i, fOnPXGACTD));
+        } catch (Exception e) {
+            entriesOnPXGACTD.add(new Entry(i, 0));
+        }
+
+        try {
+            Float fOnCZAXTD = Float.valueOf(arrayData[12]);
+            entriesOnCZACTD.add(new Entry(i, fOnCZAXTD));
+        } catch (Exception e) {
+            entriesOnCZACTD.add(new Entry(i, 0));
+        }
+        dataBean = new DataBean(arrayData[0],
+                arrayData[1], arrayData[2], arrayData[3], arrayData[4],
+                arrayData[5], arrayData[6], arrayData[7], arrayData[8],
+                arrayData[9], arrayData[10], arrayData[11], arrayData[12]);
+        dataList.add(dataBean);
     }
 
     //比较时间大小
@@ -392,9 +476,9 @@ public class MainActivity extends AppCompatActivity implements EasyPermissions.P
         try {
             Date select = df.parse(selectDate);
             Date compare = df.parse(compareDate);
-            if (select.getTime()>=compare.getTime()){
+            if (select.getTime() >= compare.getTime()) {
                 return true;
-            }else if (select.getTime()<compare.getTime()){
+            } else if (select.getTime() < compare.getTime()) {
                 return false;
             }
 //            if (select.after(compare)) {
@@ -418,6 +502,7 @@ public class MainActivity extends AppCompatActivity implements EasyPermissions.P
         switch (item) {
             case "off_direct_current_add":
                 dataSetOffDirectCurrent = new LineDataSet(entriesOffDirectCurrent, getString(R.string.off_direct_current));
+                dataSetOffDirectCurrent.setValueFormatter(new MyValueFormatter());
                 dataSetOffDirectCurrent.setMode(LineDataSet.Mode.CUBIC_BEZIER);
                 dataSetOffDirectCurrent.setCircleColor(getColor(R.color.color_bg_selected));//设置点的颜色
                 dataSetOffDirectCurrent.setColor(getColor(R.color.color_bg_selected));//设置线的颜色
@@ -429,6 +514,7 @@ public class MainActivity extends AppCompatActivity implements EasyPermissions.P
                 break;
             case "off_direct_voltage_add":
                 dataSetOffDirectVoltage = new LineDataSet(entriesOffDirectVoltage, getString(R.string.off_direct_voltage));
+                dataSetOffDirectVoltage.setValueFormatter(new MyValueFormatter());
                 dataSetOffDirectVoltage.setMode(LineDataSet.Mode.CUBIC_BEZIER);
                 dataSetOffDirectVoltage.setCircleColor(getColor(R.color.holo_red_dark));//设置点的颜色
                 dataSetOffDirectVoltage.setColor(getColor(R.color.holo_red_dark));//设置线的颜色
@@ -439,6 +525,7 @@ public class MainActivity extends AppCompatActivity implements EasyPermissions.P
                 break;
             case "off_ac_current_add":
                 dataSetOffACCurrent = new LineDataSet(entriesOffACCurrent, getString(R.string.off_ac_current));
+                dataSetOffACCurrent.setValueFormatter(new MyValueFormatter());
                 dataSetOffACCurrent.setMode(LineDataSet.Mode.CUBIC_BEZIER);
                 dataSetOffACCurrent.setCircleColor(getColor(R.color.line1));//设置点的颜色
                 dataSetOffACCurrent.setColor(getColor(R.color.line1));//设置线的颜色
@@ -449,6 +536,7 @@ public class MainActivity extends AppCompatActivity implements EasyPermissions.P
                 break;
             case "off_ac_voltage_add":
                 dataSetOffACVoltage = new LineDataSet(entriesOffACVoltage, getString(R.string.off_ac_voltage));
+                dataSetOffACVoltage.setValueFormatter(new MyValueFormatter());
                 dataSetOffACVoltage.setMode(LineDataSet.Mode.CUBIC_BEZIER);
                 dataSetOffACVoltage.setCircleColor(getColor(R.color.darkorange));//设置点的颜色
                 dataSetOffACVoltage.setColor(getColor(R.color.darkorange));//设置线的颜色
@@ -459,6 +547,7 @@ public class MainActivity extends AppCompatActivity implements EasyPermissions.P
                 break;
             case "on_direct_current_add":
                 dataSetOnDirectCurrent = new LineDataSet(entriesOnDirectCurrent, getString(R.string.on_direct_current));
+                dataSetOnDirectCurrent.setValueFormatter(new MyValueFormatter());
                 dataSetOnDirectCurrent.setMode(LineDataSet.Mode.CUBIC_BEZIER);
                 dataSetOnDirectCurrent.setCircleColor(getColor(R.color.sienna));//设置点的颜色
                 dataSetOnDirectCurrent.setColor(getColor(R.color.sienna));//设置线的颜色
@@ -469,6 +558,7 @@ public class MainActivity extends AppCompatActivity implements EasyPermissions.P
                 break;
             case "on_direct_voltage_add":
                 dataSetOnDirectVoltage = new LineDataSet(entriesOnDirectVoltage, getString(R.string.on_direct_voltage));
+                dataSetOnDirectVoltage.setValueFormatter(new MyValueFormatter());
                 dataSetOnDirectVoltage.setMode(LineDataSet.Mode.CUBIC_BEZIER);
                 dataSetOnDirectVoltage.setCircleColor(getColor(R.color.blueviolet));//设置点的颜色
                 dataSetOnDirectVoltage.setColor(getColor(R.color.blueviolet));//设置线的颜色
@@ -479,6 +569,7 @@ public class MainActivity extends AppCompatActivity implements EasyPermissions.P
                 break;
             case "on_ac_current_add":
                 dataSetOnACCurrent = new LineDataSet(entriesOnACCurrent, getString(R.string.on_ac_current));
+                dataSetOnACCurrent.setValueFormatter(new MyValueFormatter());
                 dataSetOnACCurrent.setMode(LineDataSet.Mode.CUBIC_BEZIER);
                 dataSetOnACCurrent.setCircleColor(getColor(R.color.mediumblue));//设置点的颜色
                 dataSetOnACCurrent.setColor(getColor(R.color.mediumblue));//设置线的颜色
@@ -489,10 +580,57 @@ public class MainActivity extends AppCompatActivity implements EasyPermissions.P
                 break;
             case "on_ac_voltage_add":
                 dataSetOnACVoltage = new LineDataSet(entriesOnACVoltage, getString(R.string.on_ac_voltage));
+                dataSetOnACVoltage.setValueFormatter(new MyValueFormatter());
                 dataSetOnACVoltage.setMode(LineDataSet.Mode.CUBIC_BEZIER);
                 dataSetOnACVoltage.setCircleColor(getColor(R.color.dengji));//设置点的颜色
                 dataSetOnACVoltage.setColor(getColor(R.color.dengji));//设置线的颜色
                 lineData.addDataSet(dataSetOnACVoltage);
+                lineChart.setData(lineData);
+                //刷新
+                lineChart.getViewPortHandler().refresh(new Matrix(), lineChart, true);
+                break;
+            case "on_pxg_direct_td_add":
+                dataSetOnPXGDirectTD = new LineDataSet(entriesOnPXGDirectTD, getString(R.string.pxg_direct_voltage));
+                dataSetOnPXGDirectTD.setValueFormatter(new MyValueFormatter());
+                dataSetOnPXGDirectTD.setMode(LineDataSet.Mode.CUBIC_BEZIER);
+                dataSetOnPXGDirectTD.setCircleColor(getColor(R.color.style_red));//设置点的颜色
+                dataSetOnPXGDirectTD.setColor(getColor(R.color.style_red));//设置线的颜色
+                lineData.addDataSet(dataSetOnPXGDirectTD);
+                lineChart.setData(lineData);
+                //刷新
+                lineChart.getViewPortHandler().refresh(new Matrix(), lineChart, true);
+                break;
+            case "on_cz_direct_td_add":
+                dataSetOnCZDirectTD = new LineDataSet(entriesOnCZDirectTD, getString(R.string.cz_direct_voltage));
+                dataSetOnCZDirectTD.setValueFormatter(new MyValueFormatter());
+                dataSetOnCZDirectTD.setMode(LineDataSet.Mode.CUBIC_BEZIER);
+                dataSetOnCZDirectTD.setCircleColor(getColor(R.color.tv_task_nofify_no));//设置点的颜色
+                dataSetOnCZDirectTD.setColor(getColor(R.color.tv_task_nofify_no));//设置线的颜色
+                lineData.addDataSet(dataSetOnCZDirectTD);
+                lineChart.setData(lineData);
+                //刷新
+                lineChart.getViewPortHandler().refresh(new Matrix(), lineChart, true);
+                break;
+
+            case "on_pxg_ac_td_add":
+                dataSetOnPXGACTD = new LineDataSet(entriesOnPXGACTD, getString(R.string.pxg_ac_voltage));
+                dataSetOnPXGACTD.setValueFormatter(new MyValueFormatter());
+                dataSetOnPXGACTD.setMode(LineDataSet.Mode.CUBIC_BEZIER);
+                dataSetOnPXGACTD.setCircleColor(getColor(R.color.teal));//设置点的颜色
+                dataSetOnPXGACTD.setColor(getColor(R.color.teal));//设置线的颜色
+                lineData.addDataSet(dataSetOnPXGACTD);
+                lineChart.setData(lineData);
+                //刷新
+                lineChart.getViewPortHandler().refresh(new Matrix(), lineChart, true);
+                break;
+
+            case "on_cz_ac_td_add":
+                dataSetOnCZACTD = new LineDataSet(entriesOnCZACTD, getString(R.string.cz_ac_voltage));
+                dataSetOnCZACTD.setValueFormatter(new MyValueFormatter());
+                dataSetOnCZACTD.setMode(LineDataSet.Mode.CUBIC_BEZIER);
+                dataSetOnCZACTD.setCircleColor(getColor(R.color.btn_stop_order));//设置点的颜色
+                dataSetOnCZACTD.setColor(getColor(R.color.btn_stop_order));//设置线的颜色
+                lineData.addDataSet(dataSetOnCZACTD);
                 lineChart.setData(lineData);
                 //刷新
                 lineChart.getViewPortHandler().refresh(new Matrix(), lineChart, true);
@@ -525,7 +663,7 @@ public class MainActivity extends AppCompatActivity implements EasyPermissions.P
     @OnClick({R.id.radionStartDate, R.id.tvSaveImg, R.id.tvOnDirectCurrent, R.id.tvOffDirectCurrent,
             R.id.tvOnACCurrent, R.id.tvOffACCurrent, R.id.tvOnDirectVoltage, R.id.tvOffDirectVoltage,
             R.id.tvOnACVoltage, R.id.tvOffACVoltage, R.id.linSetting, R.id.tvDelect, R.id.tvSave
-            , R.id.icBack, R.id.tvEndTime})
+            , R.id.icBack, R.id.tvEndTime,R.id.tvOnPXGDirectTD, R.id.tvOnCZDirectTD, R.id.tvOnPXGACTD, R.id.tvOnCZACTD})
     public void onClick(View view) {
         switch (view.getId()) {
             case R.id.linSetting:
@@ -543,7 +681,7 @@ public class MainActivity extends AppCompatActivity implements EasyPermissions.P
                 showDatePicker(tvEndTime, "end");
                 break;
             case R.id.tvDelect:
-                alertDialogUtil.showDelectDialog(s,this,new SaveImageCallBack() {
+                alertDialogUtil.showDelectDialog(s, this, new SaveImageCallBack() {
                     @Override
                     public void save(String name) {
                         entriesOffDirectCurrent.clear();
@@ -565,7 +703,6 @@ public class MainActivity extends AppCompatActivity implements EasyPermissions.P
 
                     }
                 });
-
                 break;
             case R.id.tvSave:
                 alertDialogUtil.showImageDialog(new SaveImageCallBack() {
@@ -579,7 +716,7 @@ public class MainActivity extends AppCompatActivity implements EasyPermissions.P
                         }
 //                        filePath = path + "1111.xls";
                         ExcelUtil.initExcel(filePath, colName);
-                        ExcelUtil.writeObjListToExcel(s,dataList, filePath, MainActivity.this);
+                        ExcelUtil.writeObjListToExcel(s, dataList, filePath, MainActivity.this);
                     }
 
                     @Override
@@ -708,6 +845,59 @@ public class MainActivity extends AppCompatActivity implements EasyPermissions.P
                     setLineCharData("on_ac_voltage_add");
                 }
                 break;
+
+            case R.id.tvOnPXGDirectTD:
+                if (pxg_direct_td) {
+                    pxg_direct_td = false;
+                    tvOnPXGDirectTD.setBackgroundColor(getColor(R.color.color_bg_selected));
+                    lineData.removeDataSet(dataSetOnPXGDirectTD);
+                    lineChart.notifyDataSetChanged();
+                    lineChart.getViewPortHandler().refresh(new Matrix(), lineChart, true);
+                } else {
+                    pxg_direct_td = true;
+                    tvOnPXGDirectTD.setBackgroundColor(getColor(R.color.holo_red_dark));
+                    setLineCharData("on_pxg_direct_td_add");
+                }
+                break;
+            case R.id.tvOnCZDirectTD:
+                if (cz_direct_td) {
+                    cz_direct_td = false;
+                    tvOnCZDirectTD.setBackgroundColor(getColor(R.color.color_bg_selected));
+                    lineData.removeDataSet(dataSetOnCZDirectTD);
+                    lineChart.notifyDataSetChanged();
+                    lineChart.getViewPortHandler().refresh(new Matrix(), lineChart, true);
+                } else {
+                    cz_direct_td = true;
+                    tvOnCZDirectTD.setBackgroundColor(getColor(R.color.holo_red_dark));
+                    setLineCharData("on_cz_direct_td_add");
+                }
+                break;
+            case R.id.tvOnPXGACTD:
+                if (pxg_ac_td) {
+                    pxg_ac_td = false;
+                    tvOnPXGACTD.setBackgroundColor(getColor(R.color.color_bg_selected));
+                    lineData.removeDataSet(dataSetOnPXGACTD);
+                    lineChart.notifyDataSetChanged();
+                    lineChart.getViewPortHandler().refresh(new Matrix(), lineChart, true);
+                } else {
+                    pxg_ac_td = true;
+                    tvOnPXGACTD.setBackgroundColor(getColor(R.color.holo_red_dark));
+                    setLineCharData("on_pxg_ac_td_add");
+                }
+                break;
+            case R.id.tvOnCZACTD:
+                if (cz_ac_td) {
+                    cz_ac_td = false;
+                    tvOnCZACTD.setBackgroundColor(getColor(R.color.color_bg_selected));
+                    lineData.removeDataSet(dataSetOnCZACTD);
+                    lineChart.notifyDataSetChanged();
+                    lineChart.getViewPortHandler().refresh(new Matrix(), lineChart, true);
+                } else {
+                    cz_ac_td = true;
+                    tvOnCZACTD.setBackgroundColor(getColor(R.color.holo_red_dark));
+                    setLineCharData("on_cz_ac_td_add");
+                }
+                break;
         }
     }
 
@@ -715,14 +905,14 @@ public class MainActivity extends AppCompatActivity implements EasyPermissions.P
     //创建申请录屏的 Intent
     private void requestMediaProjection() {
         Intent captureIntent = mMediaProjectionManager.createScreenCaptureIntent();
-        startActivityForResult(captureIntent, Constant.TAG_ONE);
+        startActivityForResult(captureIntent, TAG_ONE);
     }
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent backdata) {
         super.onActivityResult(requestCode, resultCode, backdata);
         switch (requestCode) {
-            case Constant.TAG_ONE:
+            case TAG_ONE:
                 if (resultCode == Activity.RESULT_OK) {
                     new BottomUI().hideBottomUIMenu(this.getWindow());
                     mMediaProjection = mMediaProjectionManager.getMediaProjection(resultCode, backdata);
@@ -836,6 +1026,11 @@ public class MainActivity extends AppCompatActivity implements EasyPermissions.P
                 lineData.removeDataSet(dataSetOnDirectVoltage);
                 lineData.removeDataSet(dataSetOnACCurrent);
                 lineData.removeDataSet(dataSetOnACVoltage);
+                lineData.removeDataSet(dataSetOnPXGDirectTD);
+                lineData.removeDataSet(dataSetOnCZDirectTD);
+                lineData.removeDataSet(dataSetOnPXGDirectTD);
+                lineData.removeDataSet(dataSetOnCZACTD);
+
                 lineChart.notifyDataSetChanged();
                 lineChart.getViewPortHandler().refresh(new Matrix(), lineChart, true);
                 if (tag.equals("start")) {
@@ -894,4 +1089,5 @@ public class MainActivity extends AppCompatActivity implements EasyPermissions.P
             }
         }
     };
+
 }

@@ -11,9 +11,48 @@ public class DataBean {
     public String onACCurrent;
     public String onACVoltage;
 
+    public String onPXFDirectTD;
+    public String onCZDirectTD;
+    public String onPXGACTD;
+    public String onCZACTD;
+
+
+    public String getOnPXFDirectTD() {
+        return onPXFDirectTD;
+    }
+
+    public void setOnPXFDirectTD(String onPXFDirectTD) {
+        this.onPXFDirectTD = onPXFDirectTD;
+    }
+
+    public String getOnCZDirectTD() {
+        return onCZDirectTD;
+    }
+
+    public void setOnCZDirectTD(String onCZDirectTD) {
+        this.onCZDirectTD = onCZDirectTD;
+    }
+
+    public String getOnPXGACTD() {
+        return onPXGACTD;
+    }
+
+    public void setOnPXGACTD(String onPXGACTD) {
+        this.onPXGACTD = onPXGACTD;
+    }
+
+    public String getOnCZACTD() {
+        return onCZACTD;
+    }
+
+    public void setOnCZACTD(String onCZACTD) {
+        this.onCZACTD = onCZACTD;
+    }
+
     public DataBean(String date, String offDirectCurrent, String offDirectVoltage,
                     String offACCurrent, String offACVoltage, String onDirectCurrent,
-                    String onDirectVoltage, String onACCurrent, String onACVoltage) {
+                    String onDirectVoltage, String onACCurrent, String onACVoltage,
+                    String onPXGDirectTD, String onCZDirectTD, String onPXGACTD, String onCZACTD) {
         this.date = date;
         this.offDirectCurrent = offDirectCurrent;
         this.offDirectVoltage = offDirectVoltage;
@@ -23,6 +62,11 @@ public class DataBean {
         this.onDirectVoltage = onDirectVoltage;
         this.onACCurrent = onACCurrent;
         this.onACVoltage = onACVoltage;
+
+        this.onPXFDirectTD = onPXFDirectTD;
+        this.onCZDirectTD = onCZDirectTD;
+        this.onPXGACTD = onPXGACTD;
+        this.onCZACTD = onCZACTD;
     }
 
     public String getDate() {

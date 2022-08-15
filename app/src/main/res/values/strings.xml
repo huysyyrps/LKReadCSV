@@ -11,6 +11,11 @@
     <string name="on_ac_voltage">通电交流电压</string>
     <string name="off_ac_voltage">断电交流电压</string>
 
+    <string name="pxg_direct_voltage">平行管道直流电位梯度</string>
+    <string name="cz_direct_voltage">垂直管道直流电位梯度</string>
+    <string name="pxg_ac_voltage">平行管道交流电位梯度</string>
+    <string name="cz_ac_voltage">垂直管道交流电位梯度</string>
+
     <string name="save_success">保存成功</string>
     <string name="save_faile">保存失败</string>
 

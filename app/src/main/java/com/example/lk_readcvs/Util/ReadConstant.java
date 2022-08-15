@@ -8,6 +8,7 @@ import com.example.lk_readcvs.MainActivity;
 import com.example.lk_readcvs.R;
 import com.github.mikephil.charting.charts.LineChart;
 import com.github.mikephil.charting.components.XAxis;
+import com.github.mikephil.charting.components.YAxis;
 
 import java.io.File;
 import java.io.FileWriter;
@@ -32,6 +33,8 @@ public class ReadConstant {
         XAxis xAxis = lineChart.getXAxis();
         xAxis.setEnabled(true);//设置轴启用或禁用 如果禁用以下的设置全部不生效
         xAxis.setPosition(XAxis.XAxisPosition.BOTTOM);//设置x轴的显示位置
+        YAxis yAxis = lineChart.getAxisLeft();
+        yAxis.setValueFormatter(new MyValueFormatter());
     }
 
     /**
