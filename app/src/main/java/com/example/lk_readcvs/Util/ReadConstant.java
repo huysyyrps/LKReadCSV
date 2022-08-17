@@ -31,6 +31,7 @@ public class ReadConstant {
         lineChart.animateXY(1000, 1000); // 两个轴动画，从左到右，从下到上
         // 设置左侧坐标轴
         XAxis xAxis = lineChart.getXAxis();
+        xAxis.setGranularity(1);
         xAxis.setEnabled(true);//设置轴启用或禁用 如果禁用以下的设置全部不生效
         xAxis.setPosition(XAxis.XAxisPosition.BOTTOM);//设置x轴的显示位置
         YAxis yAxis = lineChart.getAxisLeft();

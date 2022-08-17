@@ -20,6 +20,8 @@
     <string name="save_faile">保存失败</string>
 
     <string name="save">保存</string>
+    <string name="save_kml">保存KML文件</string>
+    <string name="see_kml">查看KML文件</string>
     <string name="cancle">取消</string>
 
     <string name="delect">清除数据</string>
@@ -29,4 +31,5 @@
     <string name="delect_faile">清除失败</string>
 
     <string name="no_data">暂无数据</string>
+    <string name="title_activity_maps">MapsActivity</string>
 </resources>

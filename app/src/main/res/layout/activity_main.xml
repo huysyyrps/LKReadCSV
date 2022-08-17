@@ -223,21 +223,20 @@
                         android:background="@color/color_bg_selected"
                         android:text="@string/save_data" />
                     <TextView
-                        android:id="@+id/tvDelect"
-                        android:visibility="invisible"
+                        android:id="@+id/tvKML"
                         style="@style/RadionButton"
                         android:layout_width="80dp"
                         android:layout_height="25dp"
                         android:background="@color/color_bg_selected"
-                        android:text="@string/delect" />
+                        android:text="@string/save_kml" />
 
                     <TextView
+                        android:id="@+id/tvOpen"
                         style="@style/RadionButton"
-                        android:visibility="invisible"
                         android:layout_width="80dp"
                         android:layout_height="25dp"
                         android:background="@color/color_bg_selected"
-                        android:text="@string/on_ac_voltage" />
+                        android:text="@string/see_kml" />
 
                     <TextView
                         style="@style/RadionButton"

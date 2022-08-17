@@ -17,6 +17,7 @@ import android.media.Image;
 import android.media.ImageReader;
 import android.media.projection.MediaProjection;
 import android.media.projection.MediaProjectionManager;
+import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
 import android.os.Handler;
@@ -36,7 +37,7 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import com.bigkoo.pickerview.TimePickerView;
 import com.example.lk_readcvs.Util.AlertDialogUtil;
-import com.example.lk_readcvs.Util.Constant;
+import com.example.lk_readcvs.Util.CreateKml;
 import com.example.lk_readcvs.Util.DataBean;
 import com.example.lk_readcvs.Util.ExcelUtil;
 import com.example.lk_readcvs.Util.ImageSave;
@@ -45,6 +46,8 @@ import com.example.lk_readcvs.Util.ReadCSVCallBack;
 import com.example.lk_readcvs.Util.ReadCSVThread;
 import com.example.lk_readcvs.Util.ReadConstant;
 import com.example.lk_readcvs.Util.SaveImageCallBack;
+import com.example.lk_readcvs.Util.Task;
+import com.example.lk_readcvs.Util.TrackPoint;
 import com.example.lk_readcvs.View.BottomUI;
 import com.github.mikephil.charting.charts.LineChart;
 import com.github.mikephil.charting.data.Entry;
@@ -54,6 +57,7 @@ import com.github.mikephil.charting.data.LineDataSet;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.Serializable;
 import java.lang.reflect.Array;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -103,8 +107,8 @@ public class MainActivity extends AppCompatActivity implements EasyPermissions.P
     TextView tvOnACVoltage;
     @BindView(R.id.tvOffACVoltage)
     TextView tvOffACVoltage;
-    @BindView(R.id.tvDelect)
-    TextView tvDelect;
+    @BindView(R.id.tvKML)
+    TextView tvKML;
     @BindView(R.id.tvSave)
     TextView tvSave;
     @BindView(R.id.icBack)
@@ -145,6 +149,8 @@ public class MainActivity extends AppCompatActivity implements EasyPermissions.P
     boolean cz_direct_td = false;
     boolean pxg_ac_td = false;
     boolean cz_ac_td = false;
+    @BindView(R.id.tvOpen)
+    TextView tvOpen;
     private TimePickerView datePicker;
     private int mWindowWidth;
     private int mWindowHeight;
@@ -168,6 +174,7 @@ public class MainActivity extends AppCompatActivity implements EasyPermissions.P
             dataSetOnPXGDirectTD, dataSetOnCZDirectTD, dataSetOnPXGACTD, dataSetOnCZACTD;
     String s;
     DataBean dataBean;
+    List<TrackPoint> trackPointList = new ArrayList<>();
     //AC交流  direct直流  current电流  voltage电压
 
     @Override
@@ -295,7 +302,7 @@ public class MainActivity extends AppCompatActivity implements EasyPermissions.P
                             String itemData = sb.get(i);
 //                            itemData = itemData.replace(" ", "");
                             String[] arrayData = itemData.split(",");
-                            if (itemData != null && arrayData.length > 9) {
+                            if (itemData != null && arrayData.length > 13) {
                                 if (startDate.equals("开始时间") && endDate.equals("结束时间")) {
                                     setList(i, arrayData);
                                 } else if (!startDate.equals("开始时间") && endDate.equals("结束时间")) {
@@ -380,6 +387,34 @@ public class MainActivity extends AppCompatActivity implements EasyPermissions.P
     }
 
     public void setList(int i, String[] arrayData) {
+//        Log.e("XXXXXX", arrayData.length + "");
+        if (arrayData.length == 17) {
+            TrackPoint trackPoint = new TrackPoint();
+            trackPoint.setAltitude("0");
+            String longDaitude = arrayData[15];
+            String latitude = arrayData[13];
+            String firstLongDaitude = longDaitude.substring(0,3);
+            String secondLongDaitude = longDaitude.substring(3,longDaitude.length());
+            longDaitude = String.valueOf(Double.valueOf(firstLongDaitude)+Double.valueOf(secondLongDaitude)/60);
+            Log.e("XXXXX",firstLongDaitude +"---"+secondLongDaitude);
+            Log.e("XXXXX",longDaitude);
+
+            String firstLatitude = latitude.substring(0,2);
+            String secondLatitude = latitude.substring(2,latitude.length());
+            latitude = String.valueOf(Double.valueOf(firstLatitude)+Double.valueOf(secondLatitude)/60);
+            Log.e("XXXXX",firstLatitude +"---"+secondLatitude);
+            Log.e("XXXXX",latitude);
+
+
+//            double longDaitude = Double.parseDouble(arrayData[15]);
+//            longDaitude = longDaitude / 100;
+//            double latitude = Double.parseDouble(arrayData[13]);
+//            latitude = latitude / 100;
+            trackPoint.setLongitude(longDaitude + "");
+            trackPoint.setLatitude(latitude + "");
+            trackPoint.setTime(arrayData[0]);
+            trackPointList.add(trackPoint);
+        }
         try {
             Float fOffDirectCurrent = Float.valueOf(arrayData[1]);
             entriesOffDirectCurrent.add(new Entry(i, fOffDirectCurrent));
@@ -662,8 +697,9 @@ public class MainActivity extends AppCompatActivity implements EasyPermissions.P
     @SuppressLint("ResourceAsColor")
     @OnClick({R.id.radionStartDate, R.id.tvSaveImg, R.id.tvOnDirectCurrent, R.id.tvOffDirectCurrent,
             R.id.tvOnACCurrent, R.id.tvOffACCurrent, R.id.tvOnDirectVoltage, R.id.tvOffDirectVoltage,
-            R.id.tvOnACVoltage, R.id.tvOffACVoltage, R.id.linSetting, R.id.tvDelect, R.id.tvSave
-            , R.id.icBack, R.id.tvEndTime,R.id.tvOnPXGDirectTD, R.id.tvOnCZDirectTD, R.id.tvOnPXGACTD, R.id.tvOnCZACTD})
+            R.id.tvOnACVoltage, R.id.tvOffACVoltage, R.id.linSetting, R.id.tvKML, R.id.tvSave
+            , R.id.icBack, R.id.tvEndTime, R.id.tvOnPXGDirectTD, R.id.tvOnCZDirectTD, R.id.tvOnPXGACTD
+            , R.id.tvOnCZACTD,R.id.tvOpen})
     public void onClick(View view) {
         switch (view.getId()) {
             case R.id.linSetting:
@@ -679,30 +715,6 @@ public class MainActivity extends AppCompatActivity implements EasyPermissions.P
                 break;
             case R.id.tvEndTime:
                 showDatePicker(tvEndTime, "end");
-                break;
-            case R.id.tvDelect:
-                alertDialogUtil.showDelectDialog(s, this, new SaveImageCallBack() {
-                    @Override
-                    public void save(String name) {
-                        entriesOffDirectCurrent.clear();
-                        entriesOffDirectVoltage.clear();
-                        entriesOffACCurrent.clear();
-                        entriesOffACVoltage.clear();
-                        entriesOnDirectCurrent.clear();
-                        entriesOnDirectVoltage.clear();
-                        entriesOnACCurrent.clear();
-                        entriesOnACVoltage.clear();
-                        lineChart.notifyDataSetChanged();
-                        //刷新
-                        lineChart.getViewPortHandler().refresh(new Matrix(), lineChart, true);
-                        Toast.makeText(MainActivity.this, "数据清除成功", Toast.LENGTH_SHORT).show();
-                    }
-
-                    @Override
-                    public void cancle() {
-
-                    }
-                });
                 break;
             case R.id.tvSave:
                 alertDialogUtil.showImageDialog(new SaveImageCallBack() {
@@ -725,6 +737,24 @@ public class MainActivity extends AppCompatActivity implements EasyPermissions.P
                     }
                 });
                 break;
+            case R.id.tvKML:
+                Task task = new Task();
+                task.setTrackPointList(trackPointList);
+                new CreateKml().createKml(path + "test.kml", task);
+                break;
+            case R.id.tvOpen:
+//                File KML = new File(path+"/test.kml");
+//                Intent i = getPackageManager().getLaunchIntentForPackage("com.google.earth");
+//                i.setDataAndType(Uri.fromFile(KML), "xml");
+                if (trackPointList.size()!=0){
+                    Intent intent = new Intent(this,MapActivity.class);
+                    intent.putExtra("list", (Serializable) trackPointList);
+                    startActivity(intent);
+                }else {
+                    Toast.makeText(this, "暂无坐标点", Toast.LENGTH_SHORT).show();
+                }
+
+                break;
             case R.id.tvSaveImg:
                 linSelect.setVisibility(View.GONE);
                 linSetting.setVisibility(View.VISIBLE);
@@ -742,6 +772,7 @@ public class MainActivity extends AppCompatActivity implements EasyPermissions.P
                 }
                 break;
             case R.id.tvOffDirectCurrent:
+                trackPointList = new ArrayList<>();
                 if (off_direct_current) {
                     off_direct_current = false;
                     tvOffDirectCurrent.setBackgroundColor(getColor(R.color.color_bg_selected));
@@ -755,6 +786,7 @@ public class MainActivity extends AppCompatActivity implements EasyPermissions.P
                 }
                 break;
             case R.id.tvOffDirectVoltage:
+                trackPointList = new ArrayList<>();
                 if (off_direct_voltage) {
                     off_direct_voltage = false;
                     tvOffDirectVoltage.setBackgroundColor(getColor(R.color.color_bg_selected));
@@ -768,6 +800,7 @@ public class MainActivity extends AppCompatActivity implements EasyPermissions.P
                 }
                 break;
             case R.id.tvOffACCurrent:
+                trackPointList = new ArrayList<>();
                 if (off_ac_current) {
                     off_ac_current = false;
                     tvOffACCurrent.setBackgroundColor(getColor(R.color.color_bg_selected));
@@ -781,6 +814,7 @@ public class MainActivity extends AppCompatActivity implements EasyPermissions.P
                 }
                 break;
             case R.id.tvOffACVoltage:
+                trackPointList = new ArrayList<>();
                 if (off_ac_voltage) {
                     off_ac_voltage = false;
                     tvOffACVoltage.setBackgroundColor(getColor(R.color.color_bg_selected));
@@ -794,6 +828,7 @@ public class MainActivity extends AppCompatActivity implements EasyPermissions.P
                 }
                 break;
             case R.id.tvOnDirectCurrent:
+                trackPointList = new ArrayList<>();
                 if (on_direct_current) {
                     on_direct_current = false;
                     tvOnDirectCurrent.setBackgroundColor(getColor(R.color.color_bg_selected));
@@ -807,6 +842,7 @@ public class MainActivity extends AppCompatActivity implements EasyPermissions.P
                 }
                 break;
             case R.id.tvOnDirectVoltage:
+                trackPointList = new ArrayList<>();
                 if (on_direct_voltage) {
                     on_direct_voltage = false;
                     tvOnDirectVoltage.setBackgroundColor(getColor(R.color.color_bg_selected));
@@ -820,6 +856,7 @@ public class MainActivity extends AppCompatActivity implements EasyPermissions.P
                 }
                 break;
             case R.id.tvOnACCurrent:
+                trackPointList = new ArrayList<>();
                 if (on_ac_current) {
                     on_ac_current = false;
                     tvOnACCurrent.setBackgroundColor(getColor(R.color.color_bg_selected));
@@ -833,6 +870,7 @@ public class MainActivity extends AppCompatActivity implements EasyPermissions.P
                 }
                 break;
             case R.id.tvOnACVoltage:
+                trackPointList = new ArrayList<>();
                 if (on_ac_voltage) {
                     on_ac_voltage = false;
                     tvOnACVoltage.setBackgroundColor(getColor(R.color.color_bg_selected));
@@ -847,6 +885,7 @@ public class MainActivity extends AppCompatActivity implements EasyPermissions.P
                 break;
 
             case R.id.tvOnPXGDirectTD:
+                trackPointList = new ArrayList<>();
                 if (pxg_direct_td) {
                     pxg_direct_td = false;
                     tvOnPXGDirectTD.setBackgroundColor(getColor(R.color.color_bg_selected));
@@ -860,6 +899,7 @@ public class MainActivity extends AppCompatActivity implements EasyPermissions.P
                 }
                 break;
             case R.id.tvOnCZDirectTD:
+                trackPointList = new ArrayList<>();
                 if (cz_direct_td) {
                     cz_direct_td = false;
                     tvOnCZDirectTD.setBackgroundColor(getColor(R.color.color_bg_selected));
@@ -873,6 +913,7 @@ public class MainActivity extends AppCompatActivity implements EasyPermissions.P
                 }
                 break;
             case R.id.tvOnPXGACTD:
+                trackPointList = new ArrayList<>();
                 if (pxg_ac_td) {
                     pxg_ac_td = false;
                     tvOnPXGACTD.setBackgroundColor(getColor(R.color.color_bg_selected));
@@ -886,6 +927,7 @@ public class MainActivity extends AppCompatActivity implements EasyPermissions.P
                 }
                 break;
             case R.id.tvOnCZACTD:
+                trackPointList = new ArrayList<>();
                 if (cz_ac_td) {
                     cz_ac_td = false;
                     tvOnCZACTD.setBackgroundColor(getColor(R.color.color_bg_selected));
@@ -1089,5 +1131,4 @@ public class MainActivity extends AppCompatActivity implements EasyPermissions.P
             }
         }
     };
-
 }
