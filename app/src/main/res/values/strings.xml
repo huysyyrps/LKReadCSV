@@ -23,9 +23,13 @@
     <string name="save_kml">保存KML文件</string>
     <string name="see_kml">查看KML文件</string>
     <string name="cancle">取消</string>
+    <string name="sure">确定</string>
 
     <string name="delect">清除数据</string>
     <string name="save_data">数据另存为</string>
+    <string name="create_key">生成校验码</string>
+    <string name="equipment_code">请输入设备编号</string>
+    <string name="please_write">请输入正确设备编号</string>
 
     <string name="delect_success">清除成功</string>
     <string name="delect_faile">清除失败</string>

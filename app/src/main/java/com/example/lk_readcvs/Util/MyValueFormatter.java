@@ -7,7 +7,7 @@ import com.github.mikephil.charting.formatter.ValueFormatter;
 import java.text.DecimalFormat;
 
 public class MyValueFormatter extends ValueFormatter {
-    DecimalFormat mFormat = new DecimalFormat("0.0000");
+    DecimalFormat mFormat = new DecimalFormat("0.####");
     @Override
     public String getPointLabel(Entry entry) {
         return mFormat.format(entry.getY());

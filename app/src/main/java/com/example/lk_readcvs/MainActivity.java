@@ -50,9 +50,12 @@ import com.example.lk_readcvs.Util.Task;
 import com.example.lk_readcvs.Util.TrackPoint;
 import com.example.lk_readcvs.View.BottomUI;
 import com.github.mikephil.charting.charts.LineChart;
+import com.github.mikephil.charting.components.AxisBase;
+import com.github.mikephil.charting.components.XAxis;
 import com.github.mikephil.charting.data.Entry;
 import com.github.mikephil.charting.data.LineData;
 import com.github.mikephil.charting.data.LineDataSet;
+import com.github.mikephil.charting.formatter.ValueFormatter;
 
 import java.io.File;
 import java.io.FileWriter;
@@ -121,6 +124,10 @@ public class MainActivity extends AppCompatActivity implements EasyPermissions.P
     TextView tvOnPXGACTD;
     @BindView(R.id.tvOnCZACTD)
     TextView tvOnCZACTD;
+    @BindView(R.id.tvOpen)
+    TextView tvOpen;
+    @BindView(R.id.tvKey)
+    TextView tvKey;
 
     List<Entry> entriesOffDirectCurrent = new ArrayList<>();
     List<Entry> entriesOffDirectVoltage = new ArrayList<>();
@@ -149,8 +156,6 @@ public class MainActivity extends AppCompatActivity implements EasyPermissions.P
     boolean cz_direct_td = false;
     boolean pxg_ac_td = false;
     boolean cz_ac_td = false;
-    @BindView(R.id.tvOpen)
-    TextView tvOpen;
     private TimePickerView datePicker;
     private int mWindowWidth;
     private int mWindowHeight;
@@ -175,6 +180,7 @@ public class MainActivity extends AppCompatActivity implements EasyPermissions.P
     String s;
     DataBean dataBean;
     List<TrackPoint> trackPointList = new ArrayList<>();
+    List<String> xAxisList = new ArrayList<>();
     //AC交流  direct直流  current电流  voltage电压
 
     @Override
@@ -415,6 +421,8 @@ public class MainActivity extends AppCompatActivity implements EasyPermissions.P
             trackPoint.setTime(arrayData[0]);
             trackPointList.add(trackPoint);
         }
+        xAxisList.add(arrayData[0]);
+
         try {
             Float fOffDirectCurrent = Float.valueOf(arrayData[1]);
             entriesOffDirectCurrent.add(new Entry(i, fOffDirectCurrent));
@@ -536,6 +544,7 @@ public class MainActivity extends AppCompatActivity implements EasyPermissions.P
     private void setLineCharData(String item) {
         switch (item) {
             case "off_direct_current_add":
+                setXAxis();
                 dataSetOffDirectCurrent = new LineDataSet(entriesOffDirectCurrent, getString(R.string.off_direct_current));
                 dataSetOffDirectCurrent.setValueFormatter(new MyValueFormatter());
                 dataSetOffDirectCurrent.setMode(LineDataSet.Mode.CUBIC_BEZIER);
@@ -673,6 +682,16 @@ public class MainActivity extends AppCompatActivity implements EasyPermissions.P
         }
     }
 
+    private void setXAxis(){
+        XAxis xAxis = lineChart.getXAxis();
+        xAxis.setValueFormatter(new ValueFormatter() {   //X轴自定义标签内容
+            @Override
+            public String getAxisLabel(float index, AxisBase axisBase) {
+                return xAxisList.get((int) index);
+            }
+        });
+    }
+
     // 实现“onRequestPermissionsResult”函数接收校验权限结果。
     @Override
     public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
@@ -699,7 +718,7 @@ public class MainActivity extends AppCompatActivity implements EasyPermissions.P
             R.id.tvOnACCurrent, R.id.tvOffACCurrent, R.id.tvOnDirectVoltage, R.id.tvOffDirectVoltage,
             R.id.tvOnACVoltage, R.id.tvOffACVoltage, R.id.linSetting, R.id.tvKML, R.id.tvSave
             , R.id.icBack, R.id.tvEndTime, R.id.tvOnPXGDirectTD, R.id.tvOnCZDirectTD, R.id.tvOnPXGACTD
-            , R.id.tvOnCZACTD,R.id.tvOpen})
+            , R.id.tvOnCZACTD,R.id.tvOpen,R.id.tvKey})
     public void onClick(View view) {
         switch (view.getId()) {
             case R.id.linSetting:
@@ -741,6 +760,10 @@ public class MainActivity extends AppCompatActivity implements EasyPermissions.P
                 Task task = new Task();
                 task.setTrackPointList(trackPointList);
                 new CreateKml().createKml(path + "test.kml", task);
+                break;
+            case R.id.tvKey:
+                Intent intentKey = new Intent(this,KeyActivity.class);
+                startActivity(intentKey);
                 break;
             case R.id.tvOpen:
 //                File KML = new File(path+"/test.kml");

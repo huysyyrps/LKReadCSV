@@ -1,0 +1,280 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    tools:context=".KeyActivity">
+
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:background="@color/white">
+
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="230dp"
+            android:background="@color/color_bg_selected">
+
+            <ImageView
+                android:layout_width="100dp"
+                android:layout_height="100dp"
+                android:layout_centerHorizontal="true"
+                android:layout_gravity="center_horizontal"
+                android:layout_marginTop="30dp"
+                android:layout_marginBottom="70dp"
+                android:src="@drawable/logo" />
+        </RelativeLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:layout_marginTop="180dp"
+            android:background="@drawable/linelayout_radion"
+            android:layout_marginLeft="25dp"
+            android:layout_marginRight="25dp">
+            <FrameLayout
+                android:layout_width="match_parent"
+                android:layout_height="45dp"
+                android:layout_marginTop="30dp"
+                android:layout_marginBottom="10dp"
+                android:layout_marginLeft="10dp"
+                android:layout_marginRight="10dp">
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="45dp"
+                    android:orientation="horizontal"
+                    android:background="@drawable/linelayout_color_bigradion">
+                    <LinearLayout
+                        style="@style/EditText"
+                        android:background="@drawable/linelayout_radion"
+                        android:gravity="center">
+                        <TextView
+                            android:id="@+id/tvCode0"
+                            style="@style/KeyTextView"
+                            android:gravity="center|right" />
+                        <TextView
+                            android:id="@+id/tvCode1"
+                            style="@style/KeyTextView"
+                            android:gravity="center|left"/>
+                    </LinearLayout>
+                    <View style="@style/HLine"/>
+
+                    <LinearLayout
+                        style="@style/EditText"
+                        android:background="@drawable/linelayout_radion"
+                        android:gravity="center">
+                        <TextView
+                            android:id="@+id/tvCode2"
+                            style="@style/KeyTextView"
+                            android:gravity="center|right" />
+                        <TextView
+                            android:id="@+id/tvCode3"
+                            style="@style/KeyTextView"
+                            android:gravity="center|left"/>
+                    </LinearLayout>
+                    <View style="@style/HLine"/>
+
+                    <LinearLayout
+                        style="@style/EditText"
+                        android:background="@drawable/linelayout_radion"
+                        android:gravity="center">
+                        <TextView
+                            android:id="@+id/tvCode4"
+                            style="@style/KeyTextView"
+                            android:gravity="center|right" />
+                        <TextView
+                            android:id="@+id/tvCode5"
+                            style="@style/KeyTextView"
+                            android:gravity="center|left"/>
+                    </LinearLayout>
+                    <View style="@style/HLine"/>
+
+                    <LinearLayout
+                        style="@style/EditText"
+                        android:background="@drawable/linelayout_radion"
+                        android:gravity="center">
+                        <TextView
+                            android:id="@+id/tvCode6"
+                            style="@style/KeyTextView"
+                            android:gravity="center|right" />
+                        <TextView
+                            android:id="@+id/tvCode7"
+                            style="@style/KeyTextView"
+                            android:gravity="center|left"/>
+                    </LinearLayout>
+                    <View style="@style/HLine"/>
+
+                    <LinearLayout
+                        style="@style/EditText"
+                        android:background="@drawable/linelayout_radion"
+                        android:gravity="center">
+                        <TextView
+                            android:id="@+id/tvCode8"
+                            style="@style/KeyTextView"
+                            android:gravity="center|right" />
+                        <TextView
+                            android:id="@+id/tvCode9"
+                            style="@style/KeyTextView"
+                            android:gravity="center|left"/>
+                    </LinearLayout>
+                    <View style="@style/HLine"/>
+
+                    <LinearLayout
+                        style="@style/EditText"
+                        android:background="@drawable/linelayout_radion"
+                        android:gravity="center">
+                        <TextView
+                            android:id="@+id/tvCode10"
+                            style="@style/KeyTextView"
+                            android:gravity="center|right" />
+                        <TextView
+                            android:id="@+id/tvCode11"
+                            style="@style/KeyTextView"
+                            android:gravity="center|left"/>
+                    </LinearLayout>
+                    <View style="@style/HLine"/>
+
+                    <LinearLayout
+                        style="@style/EditText"
+                        android:background="@drawable/linelayout_radion"
+                        android:gravity="center">
+                        <TextView
+                            android:id="@+id/tvCode12"
+                            style="@style/KeyTextView"
+                            android:gravity="center|right" />
+                        <TextView
+                            android:id="@+id/tvCode13"
+                            style="@style/KeyTextView"
+                            android:gravity="center|left"/>
+                    </LinearLayout>
+                    <View style="@style/HLine"/>
+
+                    <LinearLayout
+                        style="@style/EditText"
+                        android:background="@drawable/linelayout_radion"
+                        android:gravity="center">
+                        <TextView
+                            android:id="@+id/tvCode14"
+                            style="@style/KeyTextView"
+                            android:gravity="center|right" />
+                        <TextView
+                            android:id="@+id/tvCode15"
+                            style="@style/KeyTextView"
+                            android:gravity="center|left"/>
+                    </LinearLayout>
+                    <View style="@style/HLine"/>
+
+                    <LinearLayout
+                        style="@style/EditText"
+                        android:background="@drawable/linelayout_radion"
+                        android:gravity="center">
+                        <TextView
+                            android:id="@+id/tvCode16"
+                            style="@style/KeyTextView"
+                            android:gravity="center|right" />
+                        <TextView
+                            android:id="@+id/tvCode17"
+                            style="@style/KeyTextView"
+                            android:gravity="center|left"/>
+                    </LinearLayout>
+                    <View style="@style/HLine"/>
+
+                    <LinearLayout
+                        style="@style/EditText"
+                        android:background="@drawable/linelayout_radion"
+                        android:gravity="center">
+                        <TextView
+                            android:id="@+id/tvCode18"
+                            style="@style/KeyTextView"
+                            android:gravity="center|right" />
+                        <TextView
+                            android:id="@+id/tvCode19"
+                            style="@style/KeyTextView"
+                            android:gravity="center|left"/>
+                    </LinearLayout>
+                    <View style="@style/HLine"/>
+
+                    <LinearLayout
+                        style="@style/EditText"
+                        android:background="@drawable/linelayout_radion"
+                        android:gravity="center">
+                        <TextView
+                            android:id="@+id/tvCode20"
+                            style="@style/KeyTextView"
+                            android:gravity="center|right" />
+                        <TextView
+                            android:id="@+id/tvCode21"
+                            style="@style/KeyTextView"
+                            android:gravity="center|left"/>
+                    </LinearLayout>
+                    <View style="@style/HLine"/>
+
+                    <LinearLayout
+                        style="@style/EditText"
+                        android:background="@drawable/linelayout_radion"
+                        android:gravity="center">
+                        <TextView
+                            android:id="@+id/tvCode22"
+                            style="@style/KeyTextView"
+                            android:gravity="center|right" />
+                        <TextView
+                            android:id="@+id/tvCode23"
+                            style="@style/KeyTextView"
+                            android:gravity="center|left"/>
+                    </LinearLayout>
+                    <View style="@style/HLine"/>
+                </LinearLayout>
+                <EditText
+                    android:id="@+id/etCode"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:textColor="@color/translucent_color1"
+                    android:background="@color/translucent_color1"
+                    android:maxLength="24"
+                    android:textCursorDrawable="@drawable/shape_edittext_cursor"/>
+            </FrameLayout>
+
+
+            <Button
+                android:id="@+id/btn_get"
+                android:layout_width="match_parent"
+                android:layout_height="45dp"
+                android:background="@drawable/linelayout_color_bigradion"
+                android:text="@string/sure"
+                android:textColor="@color/white"
+                android:textSize="17dp"
+                android:layout_marginTop="30dp"
+                android:layout_marginRight="10dp"
+                android:layout_marginLeft="10dp"
+                android:layout_marginBottom="20dp"/>
+
+            <LinearLayout
+                android:id="@+id/linearLayout"
+                android:visibility="gone"
+                android:layout_width="match_parent"
+                android:layout_height="45dp"
+                android:layout_marginTop="30dp"
+                android:layout_marginBottom="10dp"
+                android:layout_marginLeft="10dp"
+                android:layout_marginRight="10dp"
+                android:orientation="horizontal"
+                android:background="@drawable/linelayout_color_bigradion">
+
+                <TextView
+                    android:id="@+id/tvKey"
+                    android:layout_width="match_parent"
+                    android:padding="10dp"
+                    android:gravity="center"
+                    android:textColor="@color/whith"
+                    android:textSize="17dp"
+                    android:layout_height="match_parent"/>
+            </LinearLayout>
+
+        </LinearLayout>
+    </FrameLayout>
+
+</LinearLayout>

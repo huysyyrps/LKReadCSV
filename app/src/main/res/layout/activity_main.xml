@@ -239,12 +239,12 @@
                         android:text="@string/see_kml" />
 
                     <TextView
+                        android:id="@+id/tvKey"
                         style="@style/RadionButton"
-                        android:visibility="invisible"
                         android:layout_width="80dp"
                         android:layout_height="25dp"
                         android:background="@color/color_bg_selected"
-                        android:text="@string/save_data" />
+                        android:text="@string/create_key" />
                     <TextView
                         style="@style/RadionButton"
                         android:visibility="invisible"

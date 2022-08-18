@@ -26,9 +26,7 @@
     <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" />
     <uses-permission android:name="com.vivo.notification.permission.BADGE_ICON" /> <!-- App 需要使用的部分权限 -->
     <uses-permission android:name="android.permission.READ_PHONE_STATE" />
-    <uses-permission android:name="android.permission.WAKE_LOCK" />
-
-    <!-- 这个权限用于进行网络定位 -->
+    <uses-permission android:name="android.permission.WAKE_LOCK" /> <!-- 这个权限用于进行网络定位 -->
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
 
     <application
@@ -39,9 +37,11 @@
         android:theme="@style/NoAction"
         android:usesCleartextTraffic="true">
 
-        <service android:name="com.baidu.location.f"
+        <service
+            android:name="com.baidu.location.f"
             android:enabled="true"
-            android:process=":remote"/>
+            android:process=":remote" />
+
         <meta-data
             android:name="com.baidu.lbsapi.API_KEY"
             android:value="4bSZvtVbQcxCa66kORyGnVXjfKwGlhuH" /> <!-- 百度地图 -->
@@ -62,9 +62,13 @@
             android:name=".MainActivity"
             android:exported="true"
             android:screenOrientation="landscape" />
-
         <activity
             android:name=".MapActivity"
+            android:exported="true"
+            android:screenOrientation="landscape" />
+
+        <activity
+            android:name=".KeyActivity"
             android:exported="true"
             android:screenOrientation="landscape" />
     </application>

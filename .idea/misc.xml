@@ -3,7 +3,11 @@
   <component name="DesignSurface">
     <option name="filePathToZoomLevelMap">
       <map>
+        <entry key="..\:/LuKe-item/LKReadCVS/app/src/main/res/drawable-hdpi/linelayout_radion.xml" value="0.239" />
         <entry key="..\:/LuKe-item/LKReadCVS/app/src/main/res/drawable/linelayout_color_bigradion.xml" value="0.1895" />
+        <entry key="..\:/LuKe-item/LKReadCVS/app/src/main/res/drawable/linelayout_radion.xml" value="0.233" />
+        <entry key="..\:/LuKe-item/LKReadCVS/app/src/main/res/drawable/shape_edittext_cursor.xml" value="0.239" />
+        <entry key="..\:/LuKe-item/LKReadCVS/app/src/main/res/layout/activity_key.xml" value="0.19635416666666666" />
         <entry key="..\:/LuKe-item/LKReadCVS/app/src/main/res/layout/activity_main.xml" value="0.36614583333333334" />
         <entry key="..\:/LuKe-item/LKReadCVS/app/src/main/res/layout/activity_map.xml" value="0.26510416666666664" />
         <entry key="..\:/LuKe-item/LKReadCVS/app/src/main/res/layout/activity_test.xml" value="0.240625" />
